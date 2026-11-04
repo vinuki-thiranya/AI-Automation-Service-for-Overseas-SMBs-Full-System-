@@ -18,7 +18,7 @@
 }
 
 # ops.<DOMAIN>:
-#   /in/<client_id>/<channel> and /widget.js → recallo-core (customer channels, lead forms, web chat)
+#   /in/<client_id>/<channel> and /widget.js → nuvadesk-core (customer channels, lead forms, web chat)
 #   everything else                         → n8n (editor, API, internal webhooks)
 ops.{$DOMAIN} {
 	import security_headers

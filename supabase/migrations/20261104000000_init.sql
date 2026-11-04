@@ -1,4 +1,4 @@
--- Recallo shared multi-tenant schema (spec §4, §5, §11).
+-- Nuvadesk shared multi-tenant schema (spec §4, §5, §11).
 -- Every client-data table carries client_id and has RLS enabled.
 --   * n8n writes with the service_role key (bypasses RLS).
 --   * Dashboard users (Supabase Auth) read through RLS, scoped by app.user_roles:

@@ -1,5 +1,5 @@
 /*
- * Recallo web chat widget. Embed on the client's site:
+ * Nuvadesk web chat widget. Embed on the client's site:
  *   <script src="https://ops.<DOMAIN>/widget.js" data-client="<client_id>" async></script>
  * Talks only to /in/<client_id>/webchat* on the same host that served this file.
  * Styles live in a shadow root so the host page and the widget can't affect each other.
@@ -10,7 +10,7 @@
   if (!script || !script.dataset.client) return;
   var clientId = script.dataset.client;
   var base = new URL(script.src).origin + "/in/" + encodeURIComponent(clientId) + "/webchat";
-  var storeKey = "recallo:" + clientId;
+  var storeKey = "nuvadesk:" + clientId;
   var state = { token: null, open: false, sending: false, pollTimer: null, accent: "#0E7C86", name: "Assistant", business: "" };
 
   function load() {
@@ -21,7 +21,7 @@
   }
 
   var host = document.createElement("div");
-  host.setAttribute("data-recallo-chat", "");
+  host.setAttribute("data-nuvadesk-chat", "");
   var root = host.attachShadow({ mode: "open" });
   root.innerHTML =
     '<style>' +
@@ -48,11 +48,11 @@
     '.send[disabled]{opacity:.5;cursor:default}' +
     '@media (prefers-color-scheme:dark){.panel{background:#111827;color:#f3f4f6}.log{background:#0b1220}.bot{background:#1f2937;border-color:#374151;color:#f3f4f6}form{background:#111827;border-color:#374151}textarea{background:#1f2937;color:#f3f4f6;border-color:#374151}}' +
     '</style>' +
-    '<button class="launcher" type="button" aria-expanded="false" aria-controls="recallo-panel">Chat with us</button>' +
-    '<section class="panel" id="recallo-panel" role="dialog" aria-label="Chat">' +
+    '<button class="launcher" type="button" aria-expanded="false" aria-controls="nuvadesk-panel">Chat with us</button>' +
+    '<section class="panel" id="nuvadesk-panel" role="dialog" aria-label="Chat">' +
     '  <div class="head"><div><b class="title">Chat</b><small>Virtual assistant · replies in seconds</small></div><button class="close" type="button" aria-label="Close chat">×</button></div>' +
     '  <div class="log" role="log" aria-live="polite"></div>' +
-    '  <form><label for="recallo-input" style="position:absolute;left:-9999px">Message</label><textarea id="recallo-input" rows="1" placeholder="Type your message…" maxlength="2000"></textarea><button class="send" type="submit">Send</button></form>' +
+    '  <form><label for="nuvadesk-input" style="position:absolute;left:-9999px">Message</label><textarea id="nuvadesk-input" rows="1" placeholder="Type your message…" maxlength="2000"></textarea><button class="send" type="submit">Send</button></form>' +
     '</section>';
 
   var $ = function (sel) { return root.querySelector(sel); };

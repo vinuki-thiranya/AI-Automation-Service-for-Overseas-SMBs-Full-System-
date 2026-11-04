@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Client automations hook\nrecallo-core POSTs events here: lead.created, lead.hot, lead.scored, booking.created, booking.cancelled, booking.rescheduled, escalation.opened, escalation.claimed, contact.opted_out, missed_call.texted.\n\nAdd per-client extras after the Switch (Slack post on hot lead, extra CRM fields, Package C flows). Keep the core logic in recallo-core; this is for client-specific glue. Export changes back to n8n/templates when they become reusable.",
+        "content": "## Client automations hook\nnuvadesk-core POSTs events here: lead.created, lead.hot, lead.scored, booking.created, booking.cancelled, booking.rescheduled, escalation.opened, escalation.claimed, contact.opted_out, missed_call.texted.\n\nAdd per-client extras after the Switch (Slack post on hot lead, extra CRM fields, Package C flows). Keep the core logic in nuvadesk-core; this is for client-specific glue. Export changes back to n8n/templates when they become reusable.",
         "height": 260,
         "width": 420
       },

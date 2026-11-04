@@ -1,12 +1,12 @@
-# CLAUDE.md — Recallo automation agency
+# CLAUDE.md — Nuvadesk automation agency
 
-Recallo is a one-person AI-automation agency (Sri Lanka) that installs an AI front desk for dental and physio clinics in Australia, the UK and the US. The full business and system spec is [docs/spec.md](docs/spec.md); the engineering plan is [PLAN.md](PLAN.md). Read both before non-trivial work.
+Nuvadesk is a one-person AI-automation agency (Sri Lanka) that installs an AI front desk for dental and physio clinics in Australia, the UK and the US. The full business and system spec is [docs/spec.md](docs/spec.md); the engineering plan is [PLAN.md](PLAN.md). Read both before non-trivial work.
 
 ## What lives here
 | Path | What |
 |---|---|
-| `infra/` | Control plane: `docker-compose.yml` (n8n + Postgres, recallo-core, Caddy, Uptime Kuma, backup), Caddyfile, backup image |
-| `core/` | **recallo-core**: the TypeScript service behind `/in/*` (ingestion, conversation engine, booking, leads, CRM, escalation, reporting, jobs). Tests in `core/test/` |
+| `infra/` | Control plane: `docker-compose.yml` (n8n + Postgres, nuvadesk-core, Caddy, Uptime Kuma, backup), Caddyfile, backup image |
+| `core/` | **nuvadesk-core**: the TypeScript service behind `/in/*` (ingestion, conversation engine, booking, leads, CRM, escalation, reporting, jobs). Tests in `core/test/` |
 | `qa/` | 50-conversation QA suite (`qa/conversations/<vertical>/*.yaml`, runner `qa/run.ts`) |
 | `webchat/` | Embeddable chat widget served by core at `/widget.js` |
 | `scripts/` | first-boot, update, backup, restore, Hetzner setup, n8n bootstrap, `new-client.ts`, `validate.sh` |
@@ -33,7 +33,7 @@ Recallo is a one-person AI-automation agency (Sri Lanka) that installs an AI fro
 - Compose is always run as `docker compose --project-directory infra -f infra/docker-compose.yml`; the `Makefile` wraps this.
 - SQL migrations are forward-only, named `YYYYMMDDHHMMSS_name.sql`, and every table has `client_id` + RLS.
 - LLM: Claude (`claude-sonnet-5-5` conversation, `claude-haiku-5-5` guardrails/classification) with OpenAI as the outage fallback; embeddings are OpenAI `text-embedding-3-small` (1536-d). Models are set per client in `client.json`, never hard-coded.
-- Customer-facing webhooks: `https://ops.<DOMAIN>/in/<client_id>/<channel>` (recallo-core). n8n webhooks: `https://ops.<DOMAIN>/webhook/<client_id>/events`.
+- Customer-facing webhooks: `https://ops.<DOMAIN>/in/<client_id>/<channel>` (nuvadesk-core). n8n webhooks: `https://ops.<DOMAIN>/webhook/<client_id>/events`.
 - Core code: Node 26 runs `.ts` directly, so use only erasable TypeScript (no enums, no constructor parameter properties) and `.ts` import extensions. `npm run typecheck && npm test` before committing.
 - Anything customer-facing goes through `messaging.ts sendToThread` (disclosure, WhatsApp window, transcript). Anything a guard must enforce lives in code, not in the prompt.
 - `client.schema.json` changes: run `npm run gen:types` and update `config/clients/*.json`.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://recallo.ai/schemas/client.schema.json",
-  "title": "Recallo client configuration",
+  "$id": "https://nuvadesk.ai/schemas/client.schema.json",
+  "title": "Nuvadesk client configuration",
   "description": "Everything that differs between clients. Secrets are never stored here: fields named `credential` hold a reference '<client_id>/<name>' to an n8n credential or Supabase Vault secret.",
   "type": "object",
   "additionalProperties": false,
@@ -289,7 +289,7 @@
       "properties": {
         "adapter": { "enum": ["hubspot", "pipedrive", "gohighlevel", "google_sheets", "none"], "description": "Zoho, Salesforce and Airtable are on the roadmap (spec §4.5) but not implemented yet." },
         "credential": { "$ref": "#/$defs/credential_ref" },
-        "field_mapping": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Recallo field → CRM field." },
+        "field_mapping": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Nuvadesk field → CRM field." },
         "sheet_id": { "type": "string" },
         "sheet_tab": { "type": "string", "default": "Leads" },
         "account_id": { "type": "string", "description": "GoHighLevel location ID." }

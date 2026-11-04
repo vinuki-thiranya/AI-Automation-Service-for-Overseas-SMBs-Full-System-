@@ -30,11 +30,11 @@ missing=$(grep -E '^[A-Z0-9_]+=CHANGE_ME$' "$ENV_FILE" | cut -d= -f1 || true)
 mkdir -p "$INFRA_DIR/secrets"
 chmod 700 "$INFRA_DIR/secrets"
 if [[ ! -s "$INFRA_DIR/secrets/deploy_key" ]]; then
-  if [[ -s "$HOME/.ssh/recallo_deploy" ]]; then
-    cp "$HOME/.ssh/recallo_deploy" "$INFRA_DIR/secrets/deploy_key"
-    log "reused deploy key from ~/.ssh/recallo_deploy"
+  if [[ -s "$HOME/.ssh/nuvadesk_deploy" ]]; then
+    cp "$HOME/.ssh/nuvadesk_deploy" "$INFRA_DIR/secrets/deploy_key"
+    log "reused deploy key from ~/.ssh/nuvadesk_deploy"
   else
-    ssh-keygen -q -t ed25519 -N '' -C "recallo-backup@$(hostname)" -f "$INFRA_DIR/secrets/deploy_key"
+    ssh-keygen -q -t ed25519 -N '' -C "nuvadesk-backup@$(hostname)" -f "$INFRA_DIR/secrets/deploy_key"
     warn "new deploy key — add this to GitHub → repo → Settings → Deploy keys, with WRITE access:"
     cat "$INFRA_DIR/secrets/deploy_key.pub"
   fi

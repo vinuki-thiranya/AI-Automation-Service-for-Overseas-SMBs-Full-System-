@@ -57,7 +57,7 @@ fi
 n8n_api POST "/workflows/$smoke_id/activate" >/dev/null
 log "smoke-test workflow active"
 
-# 3. recallo-core schedules (Phase 2): tick every 5 min, nightly rollup, hourly reports.
+# 3. nuvadesk-core schedules (Phase 2): tick every 5 min, nightly rollup, hourly reports.
 PACKAGES="$REPO_ROOT/n8n/templates/packages"
 [[ -n "${CORE_JOB_TOKEN:-}" && "$CORE_JOB_TOKEN" != CHANGE_ME ]] || die "CORE_JOB_TOKEN is not set in infra/.env (re-run make first-boot)"
 scheduler_name=$(jq -r .name "$PACKAGES/core-scheduler.json")

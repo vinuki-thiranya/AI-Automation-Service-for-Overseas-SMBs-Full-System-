@@ -99,7 +99,7 @@ export class GoogleCalendarAdapter implements BookingAdapter {
           description: [contact, input.notes, "Booked by the virtual assistant."].filter(Boolean).join("\n"),
           start: { dateTime: input.slot.start.toISO(), timeZone: this.config.timezone },
           end: { dateTime: input.slot.end.toISO(), timeZone: this.config.timezone },
-          extendedProperties: { private: { recallo: "1", service_id: input.service.id } },
+          extendedProperties: { private: { nuvadesk: "1", service_id: input.service.id } },
         },
       });
     } catch (err) {

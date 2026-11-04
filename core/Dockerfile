@@ -1,4 +1,4 @@
-# recallo-core. Build context is the repo root (it needs config/ and webchat/ too):
+# nuvadesk-core. Build context is the repo root (it needs config/ and webchat/ too):
 #   docker build -f core/Dockerfile .
 # Node 26 runs the TypeScript sources directly (type stripping), so there is no build step.
 FROM node:26.13.0-alpine3.24

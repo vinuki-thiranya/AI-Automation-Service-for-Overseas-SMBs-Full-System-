@@ -1,8 +1,28 @@
-# PLAN — Recallo control plane, template library, dashboard and site
+# PLAN — Nuvadesk control plane, template library, dashboard and site
 
 This is the answer to **Prompt 1** in [docs/spec.md §12](docs/spec.md#12-claude-code-prompts-plan-build-in-phases-design-seo). It confirms the architecture, splits the work into three phases, defines `client.json` and the isolation model, lists every account and credential, and ranks the 15 riskiest decisions. Rules for day-to-day work are in [CLAUDE.md](CLAUDE.md).
 
-**Brand.** *Recallo — AI front desk for dental & physio clinics.* "Recall" is the dental word for bringing patients back, and the product's promise is that no call is missed. The domain is one variable (`DOMAIN` in `infra/.env`). `recallo.ai` is the working default, but its availability **has not been checked**; confirm it, or pick an alternative, before buying.
+**Brand.** *Nuvadesk — AI front desk for dental & physio clinics.* The domain is one variable (`DOMAIN` in `infra/.env`, default `nuvadesk.ai`).
+
+**Why Nuvadesk (2026-11-04).** The first working name was "Recallo", but:
+- `recallo.ai` was registered on 2026-05-05 (GoDaddy, private owner, expires 2028), and `recallo.com` and `recallo.co` are taken.
+- `recallo.co` is a live flashcard product, and an Android **AI business-call assistant named "Recallo"** launched in June 2026. That's too close to a missed-call / AI front-desk product.
+
+Registry RDAP lookups on 2026-11-04 showed `nuvadesk.ai` and `nuvadesk.com` both unregistered. No product uses the exact name; the nearest are "Nuevadesk" (an Indian helpdesk tool) and "NovaDesk ITSM", both in other markets.
+
+| Hostname | Serves |
+|---|---|
+| `nuvadesk.ai` | Agency website (Phase 3) |
+| `app.nuvadesk.ai` | Client dashboard (Phase 3, Vercel) |
+| `ops.nuvadesk.ai` | Customer webhooks `/in/*` (core), web chat widget, n8n |
+| `status.nuvadesk.ai` | Uptime Kuma |
+
+**Domain requirements checklist (owner: you; nothing is bought yet):**
+- [ ] Trademark search for "Nuvadesk" in classes 9/35/42: [IP Australia](https://search.ipaustralia.gov.au/trademarks/search/quick), [USPTO](https://tmsearch.uspto.gov/), [UK IPO](https://trademarks.ipo.gov.uk/ipo-tmtext).
+- [ ] Register `nuvadesk.ai` (.ai requires a 2-year minimum registration) and `nuvadesk.com` (defensive; redirect it to `.ai`). Either registrar works, as long as DNS is on Cloudflare (RUNBOOK §1).
+- [ ] Before Meta business verification and the Google OAuth consent screen: a homepage and privacy policy live on `nuvadesk.ai` (Phase 3 website).
+- [ ] Agency email (Google Workspace or Zoho) on `nuvadesk.ai`. The Resend sender domain goes on a subdomain (e.g. `send.nuvadesk.ai`) with SPF and DKIM.
+- [ ] AU SMS: register the business name for alphanumeric sender IDs if you send from "Nuvadesk" rather than a number.
 
 ---
 
@@ -25,7 +45,7 @@ This is the answer to **Prompt 1** in [docs/spec.md §12](docs/spec.md#12-claude
 | Website | Claude Design handoff → Next.js on Vercel | Phase 3 |
 
 **Request flow** (as built in Phase 2, see §7).
-1. A webhook arrives at `ops.<DOMAIN>/in/<client_id>/<channel>`. Caddy routes `/in/*` to **recallo-core**.
+1. A webhook arrives at `ops.<DOMAIN>/in/<client_id>/<channel>`. Caddy routes `/in/*` to **nuvadesk-core**.
 2. Core verifies the signature on the raw body, normalizes the message to `{channel, contact_id, text, attachments, timestamp, metadata}`, dedupes on the provider message ID, resolves or merges the contact, and loads the thread from Supabase.
 3. The guardrail classifier (Haiku) runs.
 4. Retrieval fetches the top 5 FAQ chunks, then Sonnet runs with tools.
@@ -55,7 +75,7 @@ n8n runs the schedules (reminders, nurture, rollups, reports), the per-client ev
 - A timed restore onto a fresh VPS finishes in under 1 hour.
 
 ### Phase 2 — Template library, Packages A and B (spec §3, §4.1–4.9), built
-The logic lives in **recallo-core** (TypeScript, `core/`), so it can be unit-tested and QA'd without Docker. n8n stays a thin layer. See §7 for the design decisions.
+The logic lives in **nuvadesk-core** (TypeScript, `core/`), so it can be unit-tested and QA'd without Docker. n8n stays a thin layer. See §7 for the design decisions.
 
 | Module | Where | Package |
 |---|---|---|
@@ -127,9 +147,9 @@ Plus:
 | Account | Credential | Scope / setting | Stored in |
 |---|---|---|---|
 | GitHub | Deploy key (ed25519) on this repo | **Write** (the backup container pushes workflow exports). Repo stays private. | VPS `infra/secrets/deploy_key`, never committed |
-| Hetzner Cloud | Console login + SSH key | Project "recallo". SSH key auth only. | Your password manager |
+| Hetzner Cloud | Console login + SSH key | Project "nuvadesk". SSH key auth only. | Your password manager |
 | Cloudflare | API token | `Zone:DNS:Edit` on the one zone only (Caddy DNS-01) | `infra/.env` `CLOUDFLARE_API_TOKEN` |
-| Backblaze B2 | Application key | Restricted to bucket `recallo-backups`, read+write, no list-all-buckets | `infra/.env` `B2_*` |
+| Backblaze B2 | Application key | Restricted to bucket `nuvadesk-backups`, read+write, no list-all-buckets | `infra/.env` `B2_*` |
 | Telegram | Bot token (BotFather) + chat ID of your alerts chat | Bot only posts | `infra/.env` → n8n credential |
 | n8n | Owner account + public API key | API key for bootstrap and workflow export | `infra/.env` `N8N_API_KEY` |
 | Supabase | Project per region: `service_role` key (n8n only), `anon` key (dashboard), DB connection string (backups) | Service role never leaves the server | n8n credential / Vercel env / `infra/.env` |
@@ -169,7 +189,7 @@ Plus:
 
 ## 6. Open questions
 Phase 2 went ahead on the recommended defaults: Supabase in Sydney (`ap-southeast-2`), Google Calendar first and Cliniko second. Still open:
-1. **Domain:** is `recallo.ai` (or `recallo.com.au` / `getrecallo.com`) available and acceptable, or do you want a different brand?
+1. **Domain:** is `nuvadesk.ai` (or `nuvadesk.com.au` / `getnuvadesk.com`) available and acceptable, or do you want a different brand?
 2. **OpenAI fallback model:** `gpt-5-mini` in the demo config is a placeholder. Confirm the model ID and its price (`core/src/llm/pricing.ts`) against your OpenAI account.
 3. **Telegram:** the bot and alerts chat are needed for the Phase 1 error workflow and core alerts.
 

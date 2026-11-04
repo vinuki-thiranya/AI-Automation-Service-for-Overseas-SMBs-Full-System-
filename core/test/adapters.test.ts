@@ -64,7 +64,7 @@ describe("Cliniko", () => {
     const slots = await c.findCandidates({ service: cfg.business.services[0]!, from: wed, to: wed.plus({ days: 1 }) });
     expect(slots.map((s) => s.start.setZone(tz).toFormat("HH:mm"))).toEqual(["10:00", "11:00"]);
     expect(calls[0]!.url).toMatch(/^https:\/\/api\.au1\.cliniko\.com\/v1\/businesses\/111\/practitioners\/222\/appointment_types\/333\/available_times\?from=2026-11-11&to=2026-11-12/);
-    expect(calls[0]!.headers["User-Agent"]).toBe("Recallo (ops@test.local)");
+    expect(calls[0]!.headers["User-Agent"]).toBe("Nuvadesk (ops@test.local)");
   });
 
   it("finds or creates the patient, then books the appointment", async () => {
@@ -135,9 +135,9 @@ describe("CRM adapters", () => {
       { method: "POST", match: /contacts\/search/, body: { results: [{ id: "h1" }] } },
       { method: "PATCH", match: /contacts\/h1/, body: { id: "h1" } },
     ]);
-    const crm = new HubSpotCrm("tok", { lead_grade: "recallo_grade" }, fn);
+    const crm = new HubSpotCrm("tok", { lead_grade: "nuvadesk_grade" }, fn);
     expect(await crm.upsertContact(contact, { lead_grade: "hot", unmapped: "x" })).toEqual({ externalId: "h1" });
-    expect(calls[1]!.body).toEqual({ properties: { firstname: "Alex", lastname: "Smith", email: "alex@example.com", phone: "+61411111111", recallo_grade: "hot" } });
+    expect(calls[1]!.body).toEqual({ properties: { firstname: "Alex", lastname: "Smith", email: "alex@example.com", phone: "+61411111111", nuvadesk_grade: "hot" } });
   });
 
   it("Pipedrive creates a person when search finds nothing", async () => {

@@ -12,7 +12,7 @@
     {
       "parameters": {
         "chatId": "__TELEGRAM_CHAT_ID__",
-        "text": "={{ [\n  '🚨 Recallo workflow failed',\n  'Workflow: ' + ($json.workflow?.name ?? 'unknown') + ' (' + ($json.workflow?.id ?? '?') + ')',\n  'Node: ' + ($json.execution?.lastNodeExecuted ?? $json.trigger?.error?.node?.name ?? 'trigger'),\n  'Error: ' + String($json.execution?.error?.message ?? $json.trigger?.error?.message ?? 'no message').slice(0, 500),\n  'Mode: ' + ($json.execution?.mode ?? 'trigger'),\n  $json.execution?.url ? 'Open: ' + $json.execution.url : ''\n].filter(Boolean).join('\\n') }}",
+        "text": "={{ [\n  '🚨 Nuvadesk workflow failed',\n  'Workflow: ' + ($json.workflow?.name ?? 'unknown') + ' (' + ($json.workflow?.id ?? '?') + ')',\n  'Node: ' + ($json.execution?.lastNodeExecuted ?? $json.trigger?.error?.node?.name ?? 'trigger'),\n  'Error: ' + String($json.execution?.error?.message ?? $json.trigger?.error?.message ?? 'no message').slice(0, 500),\n  'Mode: ' + ($json.execution?.mode ?? 'trigger'),\n  $json.execution?.url ? 'Open: ' + $json.execution.url : ''\n].filter(Boolean).join('\\n') }}",
         "additionalFields": {
           "appendAttribution": false,
           "disable_web_page_preview": true

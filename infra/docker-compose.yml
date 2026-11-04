@@ -1,8 +1,8 @@
-# Recallo control plane — one VPS, one stack.
+# Nuvadesk control plane — one VPS, one stack.
 # Run through the Makefile (or: docker compose --project-directory infra -f infra/docker-compose.yml ...).
 # Every image is pinned; upgrades are deliberate commits (see RUNBOOK.md → Updating).
 
-name: recallo
+name: nuvadesk
 
 x-logging: &default-logging
   driver: json-file
@@ -69,7 +69,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       # Read-only view of the repo's workflow folders, used by scripts/restore.sh and n8n-bootstrap.sh.
-      - ../n8n:/opt/recallo/n8n:ro
+      - ../n8n:/opt/nuvadesk/n8n:ro
     healthcheck:
       # node is always present in the n8n image (wget/curl may not be).
       test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5678/healthz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
@@ -84,7 +84,7 @@ services:
     build:
       context: ..
       dockerfile: core/Dockerfile
-    image: recallo/core:2
+    image: nuvadesk/core:2
     restart: unless-stopped
     environment:
       PORT: 8080
@@ -120,7 +120,7 @@ services:
   caddy:
     build:
       context: ./caddy
-    image: recallo/caddy:2.11.7-cloudflare
+    image: nuvadesk/caddy:2.11.7-cloudflare
     restart: unless-stopped
     depends_on:
       - n8n
@@ -154,7 +154,7 @@ services:
   backup:
     build:
       context: ./backup
-    image: recallo/backup:1
+    image: nuvadesk/backup:1
     restart: unless-stopped
     depends_on:
       postgres:
@@ -167,7 +167,7 @@ services:
       PGUSER: ${POSTGRES_USER:-n8n}
       PGPASSWORD: ${POSTGRES_PASSWORD}
       SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}
-      BACKUP_PREFIX: ${BACKUP_PREFIX:-recallo}
+      BACKUP_PREFIX: ${BACKUP_PREFIX:-nuvadesk}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
       BACKUP_PUSH_URL: ${BACKUP_PUSH_URL:-}
       # rclone reads its remote "b2" from these variables — no config file on disk.
@@ -180,7 +180,7 @@ services:
       N8N_API_KEY: ${N8N_API_KEY:-}
       GIT_REPO_SSH: ${GIT_REPO_SSH:-}
       GIT_BRANCH: ${GIT_BRANCH:-main}
-      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-recallo-backup}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-nuvadesk-backup}
       GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-backup@localhost}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}

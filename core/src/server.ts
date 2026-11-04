@@ -1,4 +1,4 @@
-// HTTP surface of recallo-core. Caddy routes https://ops.<DOMAIN>/in/* and /widget.js here.
+// HTTP surface of nuvadesk-core. Caddy routes https://ops.<DOMAIN>/in/* and /widget.js here.
 //   /in/:client/whatsapp   GET verify + POST messages (Meta signature)
 //   /in/:client/sms        Twilio inbound SMS (Twilio signature)
 //   /in/:client/voice      Twilio voice for forwarded missed calls → TwiML + text-back
@@ -51,7 +51,7 @@ export function buildServer(deps: Deps): FastifyInstance {
     try {
       return readFileSync(path.join(REPO_ROOT, "webchat/widget.js"), "utf8");
     } catch {
-      return "console.error('recallo widget missing');";
+      return "console.error('nuvadesk widget missing');";
     }
   })();
 

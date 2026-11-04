@@ -1,4 +1,4 @@
--- Phase 2: state and fields the recallo-core service needs, plus Vault access for client secrets.
+-- Phase 2: state and fields the nuvadesk-core service needs, plus Vault access for client secrets.
 -- Forward-only; see 20261104000000_init.sql for the base schema.
 
 -- ---------------------------------------------------------------------------
@@ -55,9 +55,9 @@ begin
   end if;
   select id into v_id from vault.secrets where name = v_name;
   if v_id is null then
-    perform vault.create_secret(p_value, v_name, 'recallo client credential');
+    perform vault.create_secret(p_value, v_name, 'nuvadesk client credential');
   else
-    perform vault.update_secret(v_id, p_value, v_name, 'recallo client credential');
+    perform vault.update_secret(v_id, p_value, v_name, 'nuvadesk client credential');
   end if;
 end;
 $$;

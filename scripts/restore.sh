@@ -67,8 +67,8 @@ if $kuma; then
   compose stop uptime-kuma
   # The backup container mounts Kuma's volume read-only, so unpack with a throwaway container.
   docker run --rm \
-    -v recallo_uptime_kuma_data:/sources/uptime-kuma \
-    -v recallo_backup_work:/work \
+    -v nuvadesk_uptime_kuma_data:/sources/uptime-kuma \
+    -v nuvadesk_backup_work:/work \
     alpine:3.24.3 sh -c "rm -rf /sources/uptime-kuma/* && tar -xzf /work/restore/${archive} -C /sources"
   compose start uptime-kuma
 fi
@@ -81,7 +81,7 @@ wait_healthy n8n 300
 
 if $from_git; then
   log "re-importing workflows from n8n/workflows (overwrites by workflow ID)"
-  compose exec -T n8n n8n import:workflow --separate --input=/opt/recallo/n8n/workflows
+  compose exec -T n8n n8n import:workflow --separate --input=/opt/nuvadesk/n8n/workflows
   compose restart n8n
   wait_healthy n8n 300
 fi

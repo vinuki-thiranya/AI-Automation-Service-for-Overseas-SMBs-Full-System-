@@ -11,4 +11,4 @@ if [[ ! -s /run/secrets/deploy_key ]]; then
   echo "warning: /run/secrets/deploy_key missing or empty — workflow export to Git will fail" >&2
 fi
 
-exec supercronic -passthrough-logs /etc/recallo/crontab
+exec supercronic -passthrough-logs /etc/nuvadesk/crontab

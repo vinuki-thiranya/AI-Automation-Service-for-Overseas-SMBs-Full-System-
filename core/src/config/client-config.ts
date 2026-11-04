@@ -1,17 +1,17 @@
 // GENERATED from config/client.schema.json by 'npm run gen:types'. Do not edit by hand.
 
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "e164".
  */
 export type E164 = string;
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "hhmm".
  */
 export type Hhmm = string;
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "day_hours".
  */
 export type DayHours = {
@@ -19,14 +19,14 @@ export type DayHours = {
   close: Hhmm;
 }[];
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "slug".
  */
 export type Slug = string;
 /**
  * '<client_id>/<name>' — the name of an n8n credential or Supabase Vault secret. Never a secret value.
  *
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "credential_ref".
  */
 export type CredentialRef = string;
@@ -34,7 +34,7 @@ export type CredentialRef = string;
 /**
  * Everything that differs between clients. Secrets are never stored here: fields named `credential` hold a reference '<client_id>/<name>' to an n8n credential or Supabase Vault secret.
  */
-export interface RecalloClientConfiguration {
+export interface NuvadeskClientConfiguration {
   $schema?: string;
   schema_version: 1;
   /**
@@ -1096,7 +1096,7 @@ export interface RecalloClientConfiguration {
     adapter: "hubspot" | "pipedrive" | "gohighlevel" | "google_sheets" | "none";
     credential?: CredentialRef;
     /**
-     * Recallo field → CRM field.
+     * Nuvadesk field → CRM field.
      */
     field_mapping?: {
       [k: string]: string;
@@ -1170,7 +1170,7 @@ export interface RecalloClientConfiguration {
   };
 }
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "money".
  */
 export interface Money {
@@ -1178,7 +1178,7 @@ export interface Money {
   currency: "AUD" | "GBP" | "USD" | "EUR";
 }
 /**
- * This interface was referenced by `RecalloClientConfiguration`'s JSON-Schema
+ * This interface was referenced by `NuvadeskClientConfiguration`'s JSON-Schema
  * via the `definition` "model_ref".
  */
 export interface ModelRef {

@@ -21,7 +21,7 @@ export class ClinikoAdapter implements BookingAdapter {
   constructor(config: ClientConfig, apiKey: string, opsEmail: string, fetchFn: FetchLike) {
     this.config = config;
     this.apiKey = apiKey;
-    this.userAgent = `Recallo (${opsEmail})`;
+    this.userAgent = `Nuvadesk (${opsEmail})`;
     this.fetchFn = fetchFn;
     const shard = apiKey.split("-").at(-1);
     if (!shard || !/^[a-z]{2}\d$/.test(shard)) throw new Error("Cliniko API key must end with its shard, e.g. -au1");

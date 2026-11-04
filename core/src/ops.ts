@@ -35,7 +35,7 @@ export class Alerts implements OpsAlerts {
     console.error(JSON.stringify({ level: "alert", key, text }));
     if (!this.bot) return;
     try {
-      await this.bot.sendMessage(this.chatId, `⚠️ Recallo core: ${text}`.slice(0, 4000));
+      await this.bot.sendMessage(this.chatId, `⚠️ Nuvadesk core: ${text}`.slice(0, 4000));
     } catch (err) {
       console.error(JSON.stringify({ level: "error", msg: "telegram alert failed", error: errorMessage(err) }));
     }

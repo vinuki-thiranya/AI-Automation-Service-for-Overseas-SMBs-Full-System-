@@ -16,6 +16,6 @@ notify() {
 on_error() {
   local line=$1
   log "FAILED at line ${line}"
-  notify "❌ Recallo ${SCRIPT_NAME:-backup} failed on $(hostname) at line ${line}. Check: docker compose logs backup"
+  notify "❌ Nuvadesk ${SCRIPT_NAME:-backup} failed on $(hostname) at line ${line}. Check: docker compose logs backup"
   exit 1
 }

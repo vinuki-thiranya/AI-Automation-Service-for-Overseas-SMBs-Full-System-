@@ -1,12 +1,12 @@
-# RUNBOOK — Recallo control plane
+# RUNBOOK — Nuvadesk control plane
 
-Operational procedures for the one VPS that runs n8n, Postgres, Caddy, Uptime Kuma and the backup sidecar. Every command runs from the repo root on the server (`/opt/recallo`) as the `recallo` user, unless a step says otherwise.
+Operational procedures for the one VPS that runs n8n, Postgres, Caddy, Uptime Kuma and the backup sidecar. Every command runs from the repo root on the server (`/opt/nuvadesk`) as the `nuvadesk` user, unless a step says otherwise.
 
 | | |
 |---|---|
 | n8n editor + webhooks | `https://ops.<DOMAIN>` |
 | Status / monitors | `https://status.<DOMAIN>` |
-| Backups | Backblaze B2 `b2://<B2_BUCKET>/recallo/{n8n,supabase,uptime-kuma}/` (30 days) |
+| Backups | Backblaze B2 `b2://<B2_BUCKET>/nuvadesk/{n8n,supabase,uptime-kuma}/` (30 days) |
 | Workflow history | `n8n/workflows/` in Git (nightly) |
 | Alerts | Telegram alerts chat |
 | Restore target | **Under 1 hour** from "server is gone" to "webhooks answering" |
@@ -41,17 +41,17 @@ Operational procedures for the one VPS that runs n8n, Postgres, Caddy, Uptime Ku
 What `hetzner-setup.sh` does, in order:
 - apt upgrade and unattended-upgrades
 - Docker Engine + compose plugin from Docker's repository
-- the `recallo` user (docker + sudo groups) with your SSH key
+- the `nuvadesk` user (docker + sudo groups) with your SSH key
 - sshd hardening (keys only, no root)
 - ufw (22, 80, 443/tcp + udp) and fail2ban
 - 2 GB swap
-- a deploy key, and a clone of the repo to `/opt/recallo`
+- a deploy key, and a clone of the repo to `/opt/nuvadesk`
 
 ## 2. First boot (≈ 15 min)
 
 ```bash
-ssh recallo@<ip>
-cd /opt/recallo
+ssh nuvadesk@<ip>
+cd /opt/nuvadesk
 cp infra/.env.example infra/.env && chmod 600 infra/.env
 nano infra/.env
 make first-boot
@@ -81,7 +81,7 @@ Open `https://status.<DOMAIN>` and create the admin account. Choose SQLite as th
 |---|---|---|
 | n8n health | HTTP(s) – Keyword | `https://ops.<DOMAIN>/healthz`, keyword `ok` |
 | n8n editor TLS | HTTP(s) | `https://ops.<DOMAIN>/`, cert expiry notification on |
-| recallo-core | HTTP(s) – Keyword | `https://ops.<DOMAIN>/in/<any live client_id>/health`, keyword `ok` |
+| nuvadesk-core | HTTP(s) – Keyword | `https://ops.<DOMAIN>/in/<any live client_id>/health`, keyword `ok` |
 | Each client | HTTP(s) – Keyword | `https://ops.<DOMAIN>/in/<client_id>/health`, keyword `"ok":true`. Alert also on keyword `"degraded":true` (repeated failures). |
 | Client dashboard | HTTP(s) | dashboard URL (Phase 3) |
 | Backup freshness | Push | Create a Push monitor with a 26 h heartbeat. Put its URL (`http://uptime-kuma:3001/api/push/<token>`) in `BACKUP_PUSH_URL`. |
@@ -172,14 +172,14 @@ Record the date and total time here:
 - Execution data is pruned after 14 days, and successful executions are not saved. Client transcripts live in Supabase, where they are subject to retention.
 - Workflow exports strip `pinData` and `staticData`, because they can hold customer data.
 - Optional hardening: put `ops.<DOMAIN>` behind Cloudflare Access for the editor UI only (bypass for `/in/*`, `/widget.js`, `/webhook/*` and `/healthz`).
-- recallo-core is only reachable through Caddy at `/in/*` and `/widget.js`. `/v1/jobs/*` is internal (n8n → `core:8080`) and also needs the bearer `CORE_JOB_TOKEN`.
+- nuvadesk-core is only reachable through Caddy at `/in/*` and `/widget.js`. `/v1/jobs/*` is internal (n8n → `core:8080`) and also needs the bearer `CORE_JOB_TOKEN`.
 
-## 9. Phase 2 deploy: recallo-core and Supabase (once)
+## 9. Phase 2 deploy: nuvadesk-core and Supabase (once)
 
 1. **Supabase project** in Sydney (`ap-southeast-2`). In the SQL editor, run `supabase/migrations/20261104000000_init.sql`, then `20261105000000_phase2.sql`, in that order. (Or `supabase db push` with the Supabase CLI linked to the project.)
 2. In the Supabase dashboard, enable **Vault** (Integrations → Vault) and **pg_cron** if you want the database to purge transcripts itself; the nightly n8n job already calls `purge_expired_transcripts()`.
 3. In `infra/.env`, set `SUPABASE_AU_URL`, `SUPABASE_AU_SERVICE_ROLE_KEY`, `META_APP_SECRET`, and `GOOGLE_OAUTH_CLIENT_ID/SECRET`. `make first-boot` adds `CORE_SECRET` and `CORE_JOB_TOKEN` if they're missing.
-4. Deploy: `make update`. This pulls main, takes a backup, builds `recallo/core`, and recreates Caddy with the `/in/*` route.
+4. Deploy: `make update`. This pulls main, takes a backup, builds `nuvadesk/core`, and recreates Caddy with the `/in/*` route.
 5. `make bootstrap`. This installs the three core schedules and the `agency/core-jobs` credential next to the error workflow.
 6. Check: `curl -s https://ops.<DOMAIN>/widget.js | head -3` serves the widget, and `make logs s=core` shows `Server listening`.
 

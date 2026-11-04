@@ -63,7 +63,7 @@ node --check webchat/widget.js
 echo "ok"
 
 if [[ -d node_modules ]]; then
-  log "recallo-core: typecheck, unit tests, 50-conversation QA (mock models)"
+  log "nuvadesk-core: typecheck, unit tests, 50-conversation QA (mock models)"
   npm run --silent typecheck
   npm test --silent
   npm run --silent qa

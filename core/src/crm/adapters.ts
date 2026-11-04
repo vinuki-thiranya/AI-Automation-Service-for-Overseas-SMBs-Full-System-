@@ -1,4 +1,4 @@
-// CRM sync (spec §4.5). The CRM owns contact details; Recallo owns transcripts (added as notes/links).
+// CRM sync (spec §4.5). The CRM owns contact details; Nuvadesk owns transcripts (added as notes/links).
 // Every write is idempotent: use the stored external id, else search by email/phone, else create.
 import type { Client } from "../config/index.ts";
 import type { AppEnv } from "../env.ts";
@@ -144,7 +144,7 @@ export class GoHighLevelCrm implements CrmAdapter {
         ...(contact.name ? { firstName: first, lastName: last === "-" ? "" : last, name: contact.name } : {}),
         ...(contact.email ? { email: contact.email } : {}),
         ...(contact.phone ? { phone: contact.phone } : {}),
-        source: String(fields.source ?? "Recallo"),
+        source: String(fields.source ?? "Nuvadesk"),
         customFields: Object.entries(custom).map(([key, field_value]) => ({ key, field_value })),
       },
     });

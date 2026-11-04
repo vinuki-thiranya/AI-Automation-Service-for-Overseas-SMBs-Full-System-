@@ -1,4 +1,4 @@
-# Recallo control plane — run on the VPS from the repo root.
+# Nuvadesk control plane — run on the VPS from the repo root.
 # `make help` lists targets. Everything delegates to scripts/ so it also works without make.
 
 COMPOSE := docker compose --project-directory infra -f infra/docker-compose.yml

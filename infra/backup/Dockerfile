@@ -12,7 +12,7 @@ RUN apk add --no-cache bash ca-certificates coreutils curl git jq openssh-client
  && chmod +x /usr/local/bin/supercronic
 
 COPY lib.sh backup.sh export-workflows.sh entrypoint.sh /usr/local/bin/
-COPY crontab /etc/recallo/crontab
+COPY crontab /etc/nuvadesk/crontab
 RUN chmod +x /usr/local/bin/*.sh
 
 WORKDIR /work

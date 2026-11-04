@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepare a fresh Hetzner Cloud VPS (Ubuntu 24.04) for the Recallo control plane.
+# Prepare a fresh Hetzner Cloud VPS (Ubuntu 24.04) for the Nuvadesk control plane.
 # Run ONCE as root, on the server:
 #
 #   curl -fsSL https://raw.githubusercontent.com/vinuki-thiranya/AI-Automation-Service-for-Overseas-SMBs-Full-System-/main/scripts/hetzner-setup.sh -o hetzner-setup.sh
@@ -8,12 +8,12 @@
 #
 # What it does: system updates, unattended security upgrades, a non-root deploy user with your
 # SSH key, SSH hardening (keys only, no root login), ufw (22/80/443), fail2ban, 2 GB swap,
-# Docker Engine + compose plugin, a deploy key for GitHub, and a clone of the repo in /opt/recallo.
+# Docker Engine + compose plugin, a deploy key for GitHub, and a clone of the repo in /opt/nuvadesk.
 set -euo pipefail
 
-DEPLOY_USER=${DEPLOY_USER:-recallo}
+DEPLOY_USER=${DEPLOY_USER:-nuvadesk}
 REPO_SSH=${REPO_SSH:-git@github.com:vinuki-thiranya/AI-Automation-Service-for-Overseas-SMBs-Full-System-.git}
-APP_DIR=${APP_DIR:-/opt/recallo}
+APP_DIR=${APP_DIR:-/opt/nuvadesk}
 
 [[ $EUID -eq 0 ]] || { echo "run as root (sudo bash $0)" >&2; exit 1; }
 grep -q 'VERSION_ID="24.04"' /etc/os-release || echo "warning: tested on Ubuntu 24.04 only" >&2
@@ -48,7 +48,7 @@ install -d -m 700 -o "$DEPLOY_USER" -g "$DEPLOY_USER" "/home/$DEPLOY_USER/.ssh"
 install -m 600 -o "$DEPLOY_USER" -g "$DEPLOY_USER" /root/.ssh/authorized_keys "/home/$DEPLOY_USER/.ssh/authorized_keys"
 
 echo "==> SSH hardening"
-cat > /etc/ssh/sshd_config.d/90-recallo.conf <<'EOF'
+cat > /etc/ssh/sshd_config.d/90-nuvadesk.conf <<'EOF'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PermitRootLogin no
@@ -91,9 +91,9 @@ if ! swapon --show | grep -q /swapfile; then
 fi
 
 echo "==> GitHub deploy key"
-KEY="/home/$DEPLOY_USER/.ssh/recallo_deploy"
+KEY="/home/$DEPLOY_USER/.ssh/nuvadesk_deploy"
 if [[ ! -s "$KEY" ]]; then
-  sudo -u "$DEPLOY_USER" ssh-keygen -q -t ed25519 -N '' -C "recallo-deploy@$(hostname)" -f "$KEY"
+  sudo -u "$DEPLOY_USER" ssh-keygen -q -t ed25519 -N '' -C "nuvadesk-deploy@$(hostname)" -f "$KEY"
 fi
 cat > "/home/$DEPLOY_USER/.ssh/config" <<EOF
 Host github.com

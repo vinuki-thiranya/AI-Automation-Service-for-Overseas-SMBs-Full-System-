@@ -6,7 +6,7 @@ export interface CrmContact {
   externalId: string | null;
 }
 
-/** Recallo field name → value. client.json crm.field_mapping maps these to CRM field names. */
+/** Nuvadesk field name → value. client.json crm.field_mapping maps these to CRM field names. */
 export type CrmFields = Record<string, string | number | null>;
 
 export interface CrmAdapter {
