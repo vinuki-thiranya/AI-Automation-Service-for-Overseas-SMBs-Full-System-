@@ -3,6 +3,7 @@
 //   npm run qa                         # mock models: free, deterministic, runs anywhere
 //   npm run qa -- --live               # real models (ANTHROPIC_API_KEY; OPENAI_API_KEY optional for retrieval)
 //   npm run qa -- --only booking       # filter by id substring
+//   npm run qa -- --live --model openai:gpt-6-luna   # swap the conversation model (fallback evaluation)
 //
 // Everything except the model runs in memory: fake calendar, captured messages, no real sends.
 // `expect` is checked in both modes, `expect_mock` only with mock models, `rubric` only live (Claude judge).
@@ -22,7 +23,7 @@ import { runTick } from "../core/src/jobs.ts";
 import { AnthropicClassifier, AnthropicConversation } from "../core/src/llm/anthropic.ts";
 import type { ModelFactory } from "../core/src/llm/factory.ts";
 import { MockEmbedder } from "../core/src/llm/mock.ts";
-import { OpenAIEmbedder } from "../core/src/llm/openai.ts";
+import { OpenAIConversation, OpenAIEmbedder } from "../core/src/llm/openai.ts";
 import type { ModelSet } from "../core/src/llm/types.ts";
 import { createHarness, type Harness } from "../core/src/testing.ts";
 import { loadLocalEnv } from "../core/src/localenv.ts";
@@ -36,6 +37,7 @@ const { values: args } = parseArgs({
     only: { type: "string" },
     vertical: { type: "string", default: "dental" },
     config: { type: "string", default: path.join(here, "../config/clients/demo-clinic.json") },
+    model: { type: "string" },
   },
 });
 
@@ -91,10 +93,15 @@ interface Conversation {
 // ------------------------------------------------------------------ models
 function liveModels(config: ClientConfig): ModelFactory {
   const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) throw new Error("--live needs ANTHROPIC_API_KEY");
+  if (!key) throw new Error("--live needs ANTHROPIC_API_KEY (in .env.local)");
   const llm = config.assistant.llm;
+  // --model provider:model replaces the conversation model only; guardrail and judge stay on Claude Haiku.
+  const [provider, model] = args.model ? args.model.split(":") as [string, string] : [llm.primary.provider, llm.primary.model];
+  if (provider === "openai" && !process.env.OPENAI_API_KEY) throw new Error("--model openai:* needs OPENAI_API_KEY (in .env.local)");
+  if (!model || !["anthropic", "openai"].includes(provider)) throw new Error("--model must look like anthropic:claude-sonnet-5-5 or openai:gpt-6-luna");
+  const effort = llm.primary.effort ?? "low";
   const set: ModelSet = {
-    primary: new AnthropicConversation(key, llm.primary.provider === "anthropic" ? llm.primary.model : "claude-sonnet-5-5", llm.primary.effort ?? "low"),
+    primary: provider === "openai" ? new OpenAIConversation(process.env.OPENAI_API_KEY!, model, effort) : new AnthropicConversation(key, model, effort),
     fallback: null,
     classifier: new AnthropicClassifier(key, llm.classifier.model),
     embedder: process.env.OPENAI_API_KEY ? new OpenAIEmbedder(process.env.OPENAI_API_KEY, llm.embeddings.model) : new MockEmbedder(),
@@ -285,6 +292,14 @@ async function runConversation(convo: Conversation, baseConfig: ClientConfig) {
 }
 
 const baseConfig = readClientConfigFile(args.config!);
+if (args.live) {
+  try {
+    liveModels(baseConfig);   // fail fast on missing keys or a malformed --model
+  } catch (err) {
+    console.error(`✗ ${(err as Error).message}`);
+    process.exit(2);
+  }
+}
 const conversations = loadConversations();
 const started = Date.now();
 const results = [];
@@ -297,7 +312,7 @@ for (const convo of conversations) {
 
 const passed = results.filter((r) => !r.failures.length).length;
 const cost = results.reduce((s, r) => s + r.costUsd, 0);
-const mode = args.live ? "live" : "mock";
+const mode = args.live ? `live${args.model ? `-${args.model.replace(/[^a-z0-9.-]/gi, "_")}` : ""}` : "mock";
 const required = args.live ? Math.ceil(results.length * 0.96) : results.length;   // live: ≥48/50
 const ok = passed >= required;
 console.log(`\n${passed}/${results.length} passed (${mode}; need ${required}) in ${((Date.now() - started) / 1000).toFixed(1)}s${args.live ? ` · model cost ≈ $${cost.toFixed(3)}` : ""}`);

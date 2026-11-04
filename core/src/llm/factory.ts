@@ -29,7 +29,7 @@ export class LiveModelFactory implements ModelFactory {
 
     const conversation = (m: typeof llm.primary) => m.provider === "anthropic"
       ? new AnthropicConversation(keys.get(m.credential)!, m.model, m.effort ?? "low")
-      : new OpenAIConversation(keys.get(m.credential)!, m.model);
+      : new OpenAIConversation(keys.get(m.credential)!, m.model, m.effort ?? "low");
     if (llm.classifier.provider !== "anthropic") throw new Error("classifier must be an anthropic model");
 
     const set: ModelSet = {
