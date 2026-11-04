@@ -12,6 +12,7 @@ import { parseArgs } from "node:util";
 import { REPO_ROOT, readClientConfigFile, type ClientConfig } from "../core/src/config/index.ts";
 import { embedFaq, loadFaqSources } from "../core/src/faq.ts";
 import { derivedToken } from "../core/src/ingest/verify.ts";
+import { loadLocalEnv } from "../core/src/localenv.ts";
 import { OpenAIEmbedder } from "../core/src/llm/openai.ts";
 import { SupabaseStore } from "../core/src/store/supabase.ts";
 import { TelegramBot } from "../core/src/telegram.ts";
@@ -27,8 +28,7 @@ const { values: args, positionals } = parseArgs({
   },
 });
 
-const envFile = path.join(REPO_ROOT, "infra/.env");
-if (existsSync(envFile)) process.loadEnvFile(envFile);
+loadLocalEnv([".env.local", "infra/.env"]);
 const env = (k: string) => process.env[k]?.trim() || "";
 
 const configPath = positionals[0];

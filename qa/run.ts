@@ -25,6 +25,9 @@ import { MockEmbedder } from "../core/src/llm/mock.ts";
 import { OpenAIEmbedder } from "../core/src/llm/openai.ts";
 import type { ModelSet } from "../core/src/llm/types.ts";
 import { createHarness, type Harness } from "../core/src/testing.ts";
+import { loadLocalEnv } from "../core/src/localenv.ts";
+
+loadLocalEnv();   // ANTHROPIC_API_KEY / OPENAI_API_KEY for --live, from the gitignored .env.local
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const { values: args } = parseArgs({

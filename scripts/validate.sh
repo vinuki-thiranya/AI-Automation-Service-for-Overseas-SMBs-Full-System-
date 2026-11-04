@@ -72,7 +72,7 @@ else
 fi
 
 log "secret scan of tracked files"
-if git grep -nIE '(sk-ant-[A-Za-z0-9_-]{10,}|sk-(proj-)?[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,})' -- . ':!scripts/validate.sh'; then
+if git grep -nIE '(sk-ant-[A-Za-z0-9_-]{10,}|sk-(proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}|GOCSPX-[A-Za-z0-9_-]{20,}|1//0[A-Za-z0-9_-]{30,}|re_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,})' -- . ':!scripts/validate.sh'; then
   die "possible secret committed (see above)"
 fi
 echo "ok: nothing found"
