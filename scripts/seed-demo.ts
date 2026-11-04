@@ -203,7 +203,9 @@ async function seedClient(slug: (typeof SLUGS)[number], seed: number) {
     let dayCost = 0;
 
     for (let i = 0; i < count; i++) {
-      const script = pick(scripts);
+      // Hand-offs are the exception: about 1 conversation in 20, not 1 in 5.
+      let script = pick(scripts);
+      if (script.kind === "escalation" && !chance(0.3)) script = pick(scripts.filter((s) => s.kind !== "escalation"));
       const afterHours = script.kind === "after_hours";
       const hour = afterHours ? pick([6, 20, 21, 22]) : between(8, 18);
       let at = day.plus({ hours: hour, minutes: between(0, 59) });
