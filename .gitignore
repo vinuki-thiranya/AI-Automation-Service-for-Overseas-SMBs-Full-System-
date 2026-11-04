@@ -5,6 +5,8 @@
 !*.example
 *.pem
 *.key
+# Deploy key and other server-side secret files (scripts/first-boot.sh)
+infra/secrets/
 id_*
 !id_*.pub
 

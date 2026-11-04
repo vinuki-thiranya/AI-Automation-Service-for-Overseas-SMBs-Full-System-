@@ -1,0 +1,19 @@
+{
+	local_certs
+	skip_install_trust
+}
+
+# Mirrors infra/caddy/Caddyfile routing; only TLS issuance differs.
+ops.{$DOMAIN} {
+	@core path /in/* /widget.js
+	handle @core {
+		reverse_proxy core:8080
+	}
+	handle {
+		reverse_proxy n8n:5678
+	}
+}
+
+status.{$DOMAIN} {
+	reverse_proxy uptime-kuma:3001
+}

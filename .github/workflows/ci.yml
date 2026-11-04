@@ -1,0 +1,121 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Static checks, unit tests, mock QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.13.0
+          cache: npm
+      - uses: actions/setup-python@v7.1.0
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml==6.0.3
+      - run: npm ci
+      - run: bash scripts/validate.sh
+
+  docker:
+    name: Docker stack builds, starts and routes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMPOSE: docker compose --project-directory infra -f infra/docker-compose.yml -f infra/ci/docker-compose.ci.yml --env-file infra/ci/.env.ci
+      CURL: curl -sk --max-time 20 --resolve ops.ci.test:443:127.0.0.1
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Compose config is valid
+        run: $COMPOSE config -q
+      - name: Build all images (core, caddy with Cloudflare plugin, backup)
+        run: $COMPOSE --profile backup build
+      - name: Start the stack and wait for health
+        run: |
+          mkdir -p infra/secrets && touch infra/secrets/deploy_key
+          $COMPOSE up -d --wait --wait-timeout 300
+          $COMPOSE ps
+      - name: Route checks through Caddy
+        run: |
+          set -x
+          $CURL https://ops.ci.test/healthz | grep -q '"status":"ok"'                       # n8n
+          $CURL https://ops.ci.test/widget.js | grep -q 'Nuvadesk web chat widget'          # core serves the widget
+          test "$($CURL -o /dev/null -w '%{http_code}' https://ops.ci.test/in/nobody/health)" = 404
+          # /v1/jobs/* is internal (n8n → core:8080); through Caddy it must not reach core.
+          ! $CURL -X POST https://ops.ci.test/v1/jobs/tick | grep -q '"clients"'
+      - name: Core job endpoint requires the bearer token (internal network)
+        run: |
+          $COMPOSE exec -T core node -e "
+            const t = process.env.CORE_JOB_TOKEN;
+            const call = (h) => fetch('http://127.0.0.1:8080/v1/jobs/tick', { method: 'POST', headers: h }).then((r) => r.status);
+            Promise.all([call({}), call({ authorization: 'Bearer ' + t })]).then(([no, yes]) => {
+              console.log('without token', no, 'with token', yes);
+              if (no !== 401 || yes !== 200) process.exit(1);
+            });"
+      - name: n8n imports every template
+        run: |
+          mkdir -p /tmp/wf
+          for f in n8n/templates/system/*.json n8n/templates/packages/*.json; do
+            out=/tmp/wf/$(basename "$f")
+            sed -e 's/__CLIENT_ID__/ci-clinic/g' -e 's/__WEBHOOK_ID__/0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f/g' \
+                -e 's/__CORE_JOBS_CREDENTIAL_ID__/ci-cred/g' -e 's/__ERROR_WORKFLOW_ID__/ci-error/g' \
+                -e 's/__TELEGRAM_CHAT_ID__/0/g' -e 's/__TELEGRAM_CREDENTIAL_ID__/ci-tg/g' "$f" > "$out"
+            $COMPOSE cp "$out" n8n:/tmp/$(basename "$f")
+            echo "importing $(basename "$f")"
+            $COMPOSE exec -T n8n n8n import:workflow --input=/tmp/$(basename "$f")
+          done
+          count=$($COMPOSE exec -T n8n n8n list:workflow | grep -c '|')
+          echo "workflows in n8n: $count"
+          test "$count" -eq "$(ls /tmp/wf | wc -l)"
+      - name: Stack logs on failure
+        if: failure()
+        run: |
+          $COMPOSE ps -a
+          $COMPOSE logs --no-color --tail=80 > /tmp/stack.log || true
+          tail -n 120 /tmp/stack.log
+          grep -iE "error|fatal|panic" /tmp/stack.log | tail -n 15 | while read -r line; do echo "::error title=stack log::${line:0:300}"; done
+      - name: Tear down
+        if: always()
+        run: $COMPOSE down -v
+
+  supabase:
+    name: Supabase migrations and integration tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.13.0
+          cache: npm
+      - uses: supabase/setup-cli@v2.1.2
+        with:
+          version: 2.121.0
+      - name: Start Supabase (db, auth, api only) and apply migrations
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - name: Migrations re-apply cleanly from scratch
+        run: supabase db reset
+      - run: npm ci
+      - name: Integration tests against the local stack
+        working-directory: core
+        run: |
+          eval "$(supabase status -o env | sed -n -e 's/^API_URL=/export SUPABASE_TEST_URL=/p' -e 's/^SERVICE_ROLE_KEY=/export SUPABASE_TEST_SERVICE_ROLE_KEY=/p' -e 's/^ANON_KEY=/export SUPABASE_TEST_ANON_KEY=/p')"
+          test -n "$SUPABASE_TEST_URL" && test -n "$SUPABASE_TEST_SERVICE_ROLE_KEY" && test -n "$SUPABASE_TEST_ANON_KEY"
+          npx vitest run test/integration --reporter=verbose
+      - name: Database logs on failure
+        if: failure()
+        run: docker logs supabase_db_nuvadesk --tail 80 2>&1 | tail -n 80 || true

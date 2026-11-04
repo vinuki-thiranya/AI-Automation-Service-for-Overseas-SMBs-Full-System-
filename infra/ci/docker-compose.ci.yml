@@ -1,0 +1,16 @@
+# CI override: same images and services as production, minus what needs real accounts.
+#   docker compose --project-directory infra -f infra/docker-compose.yml -f infra/ci/docker-compose.ci.yml --env-file infra/ci/.env.ci ...
+services:
+  caddy:
+    volumes:
+      # Local CA instead of Cloudflare DNS-01 (no real domain in CI). Same routes as the production Caddyfile.
+      - ./ci/Caddyfile.ci:/etc/caddy/Caddyfile:ro
+
+  core:
+    environment:
+      # No Supabase in this job: credential refs resolve from env and every client lookup is a 404.
+      CORE_DEV_SECRETS: "1"
+
+  backup:
+    # Needs B2 and a deploy key; built in CI but not started.
+    profiles: ["backup"]
