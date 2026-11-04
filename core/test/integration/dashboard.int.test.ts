@@ -151,6 +151,31 @@ describe.skipIf(!url || !serviceKey || !anonKey)("dashboard access rules", () =>
     expect(rows[0]!.weekday).toBeGreaterThanOrEqual(1);
     expect(rows[0]!.hour).toBeLessThan(24);
     expect(await must(users.staffA.rpc("enquiry_hours", { p_client: ids.b.client, p_from: "2000-01-01", p_to: "2100-01-01" }))).toEqual([]);
+
+    const days = await must(users.staffA.rpc("enquiries_by_day", { p_client: ids.a.client, p_from: "2000-01-01", p_to: "2100-01-01" })) as { enquiries: number; after_hours: number }[];
+    expect(days).toHaveLength(1);
+    expect(days[0]!.enquiries).toBe(1);
+    expect(days[0]!.after_hours).toBeLessThanOrEqual(1);
+    expect(await must(users.staffA.rpc("enquiries_by_day", { p_client: ids.b.client, p_from: "2000-01-01", p_to: "2100-01-01" }))).toEqual([]);
+  });
+
+  it("counts enquiries on holidays and outside opening hours as after hours", async () => {
+    const config = demoConfig((c) => {
+      c.client_id = `${run}-c`;
+      c.business.holidays = [{ date: "2026-12-25", name: "Christmas Day" }];
+    });
+    const client = await must(store.db.from("clients").insert({ slug: `${run}-c`, name: "Clinic C", vertical: "dental", region: "au", timezone: "Australia/Sydney", status: "demo", config }).select("id").single()) as { id: string };
+    const contact = await store.insertContact({ client_id: client.id, phone: "+61411110003" });
+    // Sydney is UTC+11 in summer: 01:00Z = 12:00 local, 11:00Z = 22:00 local.
+    for (const [i, at] of ["2026-12-01T01:00:00Z", "2026-12-01T11:00:00Z", "2026-12-25T01:00:00Z"].entries()) {
+      const thread = await store.insertThread({ client_id: client.id, contact_id: contact.id, channel: "sms" });
+      await must(store.db.from("messages").insert({ client_id: client.id, thread_id: thread.id, direction: "inbound", author: "customer", channel: "sms", body: `q${i}`, created_at: at }));
+    }
+    const days = await must(users.agency.rpc("enquiries_by_day", { p_client: client.id, p_from: "2026-12-01", p_to: "2026-12-31" })) as { day: string; enquiries: number; after_hours: number }[];
+    expect(days).toEqual([
+      { day: "2026-12-01", enquiries: 2, after_hours: 1 },
+      { day: "2026-12-25", enquiries: 1, after_hours: 1 },
+    ]);
   });
 
   it("gives anonymous callers nothing", async () => {
