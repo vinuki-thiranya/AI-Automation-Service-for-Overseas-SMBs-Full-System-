@@ -27,7 +27,11 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "types": [
+      "node",
+      "mdx"
+    ]
   },
   "include": [
     "next-env.d.ts",
