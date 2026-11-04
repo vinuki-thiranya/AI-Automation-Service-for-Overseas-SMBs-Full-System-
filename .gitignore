@@ -29,3 +29,5 @@ Thumbs.db
 *.secrets.json
 # QA run reports (live runs contain model output; keep locally)
 qa/reports/
+# CI-only dummy values (no secrets), needed by .github/workflows/ci.yml
+!infra/ci/.env.ci
