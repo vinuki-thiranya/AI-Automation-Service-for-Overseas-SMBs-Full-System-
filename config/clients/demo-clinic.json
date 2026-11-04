@@ -52,8 +52,12 @@
       { "name": "Dr Sam Patel", "role": "Dentist", "bio": "Special interest in nervous patients and children." },
       { "name": "Jess Nguyen", "role": "Practice manager", "bio": "Looks after bookings, accounts and health-fund questions." }
     ],
+    "documents": [
+      { "id": "new-patient-form", "name": "New patient form", "url": "https://example.com/forms/new-patient.pdf", "when": "After booking a new patient exam" },
+      { "id": "directions", "name": "Directions and parking", "url": "https://example.com/visit", "when": "When someone asks how to find or park at the clinic" }
+    ],
     "faq_sources": [
-      { "type": "inline", "ref": "config/clients/demo-clinic.faq.md" }
+      { "type": "file", "ref": "config/clients/demo-clinic.faq.md" }
     ]
   },
 
@@ -67,7 +71,9 @@
         "reminder_24h": "appointment_reminder_24h",
         "reminder_2h": "appointment_reminder_2h",
         "no_show": "missed_appointment_rebook",
-        "missed_call": "missed_call_text_back"
+        "missed_call": "missed_call_text_back",
+        "escalation_alert": "staff_escalation_alert",
+        "lead_followup": "new_enquiry_followup"
       }
     },
     "sms": { "enabled": true, "from_number": "+61400000001", "credential": "demo-clinic/twilio" },
@@ -110,6 +116,7 @@
   "booking": {
     "adapter": "google_calendar",
     "credential": "demo-clinic/google",
+    "booking_link": "https://example.com/book",
     "calendars": [
       { "id": "REPLACE_WITH_CALENDAR_ID_DR_CHEN", "practitioner": "Dr Maya Chen" },
       { "id": "REPLACE_WITH_CALENDAR_ID_DR_PATEL", "practitioner": "Dr Sam Patel" }
@@ -170,11 +177,11 @@
     "thresholds": { "hot": 7.5, "warm": 4.5 },
     "hot_notify": ["+61400000002"],
     "nurture": [
-      { "day": 0, "channel": "sms", "template": "nurture_welcome" },
-      { "day": 2, "channel": "email", "template": "nurture_what_to_expect" },
-      { "day": 5, "channel": "sms", "template": "nurture_free_consult" },
-      { "day": 9, "channel": "email", "template": "nurture_patient_story" },
-      { "day": 14, "channel": "sms", "template": "nurture_last_call" }
+      { "day": 1, "channel": "sms", "text": "Hi {name}, it's Harbourside Dental. Any questions about getting started? Reply here and we'll help. Reply STOP to opt out." },
+      { "day": 3, "channel": "email", "subject": "What to expect at your first visit", "text": "Hi {name},\n\nYour first visit is a relaxed 45-60 minute check: x-rays, a chat about your goals and a written plan with prices. Nothing happens without your OK.\n\nReply to this email or message us to book.\n\nHarbourside Dental" },
+      { "day": 6, "channel": "sms", "text": "Hi {name}, Invisalign and whitening consultations are free at Harbourside Dental. Want me to find you a time? Reply STOP to opt out." },
+      { "day": 10, "channel": "email", "subject": "A note from Dr Chen", "text": "Hi {name},\n\nMost people who come to us have put off their visit for a while. That's completely fine. We'll go at your pace.\n\nReply to book a time that suits you.\n\nDr Maya Chen, Harbourside Dental" },
+      { "day": 14, "channel": "sms", "text": "Hi {name}, last check-in from Harbourside Dental. If now's not the right time, no worries. Just reply when you're ready. Reply STOP to opt out." }
     ]
   },
 
@@ -182,6 +189,7 @@
     "adapter": "google_sheets",
     "credential": "demo-clinic/google",
     "sheet_id": "REPLACE_WITH_SHEET_ID",
+    "sheet_tab": "Leads",
     "field_mapping": {
       "name": "Name",
       "phone": "Phone",
@@ -194,9 +202,11 @@
   },
 
   "escalation": {
-    "channel": "whatsapp_group",
-    "target": "REPLACE_WITH_STAFF_GROUP_ID",
-    "credential": "demo-clinic/whatsapp",
+    "channel": "whatsapp_staff",
+    "staff": [
+      { "name": "Jess Nguyen", "phone": "+61400000003" },
+      { "name": "Front desk", "phone": "+61400000004" }
+    ],
     "owner_backup": "+61400000002",
     "claim_timeout_minutes": 10,
     "ai_pause_minutes": 120

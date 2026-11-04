@@ -61,6 +61,7 @@
             "properties": {
               "id": { "$ref": "#/$defs/slug" },
               "name": { "type": "string" },
+              "external_id": { "type": "string", "description": "The service's ID in the booking system (Cliniko appointment type, Acuity appointment type, Calendly event type URI, Bookings service ID)." },
               "duration_minutes": { "type": "integer", "minimum": 5, "maximum": 480 },
               "price": { "$ref": "#/$defs/money" },
               "price_note": { "type": "string", "description": "e.g. 'from', 'gap-free with selected health funds'" },
@@ -83,6 +84,19 @@
           "items": {
             "type": "object", "additionalProperties": false, "required": ["name", "role"],
             "properties": { "name": { "type": "string" }, "role": { "type": "string" }, "bio": { "type": "string" } }
+          }
+        },
+        "documents": {
+          "type": "array",
+          "description": "Documents the assistant may send with send_document (forms, price sheets, directions).",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "name", "url"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "when": { "type": "string", "description": "When the assistant should offer it." }
+            }
           }
         },
         "faq_sources": {
@@ -191,8 +205,13 @@
       "additionalProperties": false,
       "required": ["adapter"],
       "properties": {
-        "adapter": { "enum": ["google_calendar", "microsoft_bookings", "calendly", "cliniko", "jane", "acuity", "simplepractice", "jobber", "gohighlevel"] },
+        "adapter": {
+          "enum": ["google_calendar", "cliniko", "acuity", "microsoft_bookings", "calendly", "jane", "link"],
+          "description": "jane and link run in link-out mode: the assistant sends booking_link instead of booking directly (Jane's API is partner-gated with no public booking endpoint)."
+        },
         "credential": { "$ref": "#/$defs/credential_ref" },
+        "account_id": { "type": "string", "description": "Provider account context: Cliniko business ID + shard (e.g. 'au1:12345'), Bookings business ID, or Calendly organization URI." },
+        "booking_link": { "type": "string", "format": "uri", "description": "Online booking page. Used for link-out mode (adapter 'link', or Jane) and as a fallback when the adapter fails." },
         "calendars": {
           "type": "array",
           "items": {
@@ -250,11 +269,13 @@
         "nurture": {
           "type": "array", "maxItems": 7,
           "items": {
-            "type": "object", "additionalProperties": false, "required": ["day", "channel", "template"],
+            "type": "object", "additionalProperties": false, "required": ["day", "channel", "text"],
             "properties": {
               "day": { "type": "integer", "minimum": 0, "maximum": 14 },
               "channel": { "enum": ["sms", "whatsapp", "email"] },
-              "template": { "type": "string" }
+              "text": { "type": "string", "description": "Message body for SMS/email ({name} is replaced with the lead's first name). For WhatsApp it is the fallback when no template is set." },
+              "subject": { "type": "string", "description": "Email subject." },
+              "template": { "type": "string", "description": "Approved WhatsApp template name (required to message outside the 24-hour window)." }
             }
           }
         }
@@ -266,21 +287,34 @@
       "additionalProperties": false,
       "required": ["adapter"],
       "properties": {
-        "adapter": { "enum": ["hubspot", "pipedrive", "gohighlevel", "zoho", "salesforce", "google_sheets", "airtable", "none"] },
+        "adapter": { "enum": ["hubspot", "pipedrive", "gohighlevel", "google_sheets", "none"], "description": "Zoho, Salesforce and Airtable are on the roadmap (spec §4.5) but not implemented yet." },
         "credential": { "$ref": "#/$defs/credential_ref" },
         "field_mapping": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Recallo field → CRM field." },
-        "sheet_id": { "type": "string" }
+        "sheet_id": { "type": "string" },
+        "sheet_tab": { "type": "string", "default": "Leads" },
+        "account_id": { "type": "string", "description": "GoHighLevel location ID." }
       }
     },
 
     "escalation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["channel", "target"],
+      "required": ["channel", "staff"],
       "properties": {
-        "channel": { "enum": ["whatsapp_group", "slack", "telegram", "sms"] },
-        "target": { "type": "string", "description": "Group/channel ID or phone number." },
-        "credential": { "$ref": "#/$defs/credential_ref" },
+        "channel": {
+          "enum": ["whatsapp_staff", "telegram", "sms"],
+          "description": "whatsapp_staff: a card with an \"I'll take it\" button to each staff number (the Cloud API cannot post into WhatsApp groups). telegram: one card in a staff group via the client's bot. sms: plain text to each staff number."
+        },
+        "staff": {
+          "type": "array", "minItems": 1,
+          "description": "People who can take over a conversation. Their phone numbers are recognised as staff when they message the client's number, so their replies are relayed to the customer.",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["name", "phone"],
+            "properties": { "name": { "type": "string" }, "phone": { "$ref": "#/$defs/e164" } }
+          }
+        },
+        "telegram_chat_id": { "type": "string", "description": "Required when channel is telegram." },
+        "credential": { "$ref": "#/$defs/credential_ref", "description": "Telegram bot token when channel is telegram; otherwise the channel credential is reused." },
         "owner_backup": { "$ref": "#/$defs/e164" },
         "claim_timeout_minutes": { "type": "integer", "minimum": 1, "default": 10 },
         "ai_pause_minutes": { "type": "integer", "minimum": 0, "default": 120 }

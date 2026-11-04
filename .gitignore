@@ -21,3 +21,8 @@ dist/
 .DS_Store
 Thumbs.db
 *.log
+
+# Client credentials for scripts/new-client.ts (never committed)
+*.secrets.json
+# QA run reports (live runs contain model output; keep locally)
+qa/reports/

@@ -1,0 +1,14 @@
+{
+  "name": "recallo",
+  "private": true,
+  "type": "module",
+  "workspaces": ["core"],
+  "engines": { "node": ">=26" },
+  "scripts": {
+    "typecheck": "npm -w core run typecheck",
+    "test": "npm -w core test",
+    "gen:types": "npm -w core run gen:types",
+    "qa": "node qa/run.ts",
+    "new-client": "node scripts/new-client.ts"
+  }
+}
