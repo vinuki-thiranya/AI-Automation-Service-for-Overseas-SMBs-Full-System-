@@ -1,0 +1,44 @@
+{
+  "name": "System — Error → Telegram",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "6f1d1c52-6a2e-4c41-9a51-2d6f3f0b1a01",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "chatId": "__TELEGRAM_CHAT_ID__",
+        "text": "={{ [\n  '🚨 Recallo workflow failed',\n  'Workflow: ' + ($json.workflow?.name ?? 'unknown') + ' (' + ($json.workflow?.id ?? '?') + ')',\n  'Node: ' + ($json.execution?.lastNodeExecuted ?? $json.trigger?.error?.node?.name ?? 'trigger'),\n  'Error: ' + String($json.execution?.error?.message ?? $json.trigger?.error?.message ?? 'no message').slice(0, 500),\n  'Mode: ' + ($json.execution?.mode ?? 'trigger'),\n  $json.execution?.url ? 'Open: ' + $json.execution.url : ''\n].filter(Boolean).join('\\n') }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "6f1d1c52-6a2e-4c41-9a51-2d6f3f0b1a02",
+      "name": "Send Telegram alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [260, 0],
+      "credentials": {
+        "telegramApi": {
+          "id": "__TELEGRAM_CREDENTIAL_ID__",
+          "name": "agency/telegram-alerts"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [[{ "node": "Send Telegram alert", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none"
+  }
+}

@@ -1,0 +1,164 @@
+# Recallo control plane — one VPS, one stack.
+# Run through the Makefile (or: docker compose --project-directory infra -f infra/docker-compose.yml ...).
+# Every image is pinned; upgrades are deliberate commits (see RUNBOOK.md → Updating).
+
+name: recallo
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    image: postgres:17.11-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-n8n}
+      POSTGRES_USER: ${POSTGRES_USER:-n8n}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infra/.env}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+    logging: *default-logging
+
+  n8n:
+    image: n8nio/n8n:2.46.4
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-n8n}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER:-n8n}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?set N8N_ENCRYPTION_KEY in infra/.env}
+      N8N_HOST: ops.${DOMAIN:?set DOMAIN in infra/.env}
+      N8N_PROTOCOL: https
+      N8N_PORT: 5678
+      WEBHOOK_URL: https://ops.${DOMAIN}/
+      N8N_EDITOR_BASE_URL: https://ops.${DOMAIN}/
+      N8N_PROXY_HOPS: 1
+      GENERIC_TIMEZONE: ${TZ:-UTC}
+      TZ: ${TZ:-UTC}
+      # Security: workflows can't read container env (it holds the DB password and encryption key).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_PUBLIC_API_DISABLED: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_RUNNERS_ENABLED: "true"
+      # Keep execution data short-lived: client data belongs in Supabase, not here.
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: ${N8N_EXECUTIONS_MAX_AGE_HOURS:-336}
+      EXECUTIONS_DATA_PRUNE_MAX_COUNT: 50000
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: all
+      N8N_LOG_LEVEL: info
+    volumes:
+      - n8n_data:/home/node/.n8n
+      # Read-only view of the repo's workflow folders, used by scripts/restore.sh and n8n-bootstrap.sh.
+      - ../n8n:/opt/recallo/n8n:ro
+    healthcheck:
+      # node is always present in the n8n image (wget/curl may not be).
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:5678/healthz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks: [internal]
+    logging: *default-logging
+
+  caddy:
+    build:
+      context: ./caddy
+    image: recallo/caddy:2.11.7-cloudflare
+    restart: unless-stopped
+    depends_on:
+      - n8n
+      - uptime-kuma
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in infra/.env}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?set CLOUDFLARE_API_TOKEN in infra/.env}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [internal]
+    logging: *default-logging
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.9
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - uptime_kuma_data:/app/data
+    networks: [internal]
+    logging: *default-logging
+
+  backup:
+    build:
+      context: ./backup
+    image: recallo/backup:1
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-UTC}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: ${POSTGRES_DB:-n8n}
+      PGUSER: ${POSTGRES_USER:-n8n}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}
+      BACKUP_PREFIX: ${BACKUP_PREFIX:-recallo}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      # rclone reads its remote "b2" from these variables — no config file on disk.
+      RCLONE_CONFIG_B2_TYPE: b2
+      RCLONE_CONFIG_B2_ACCOUNT: ${B2_KEY_ID:?set B2_KEY_ID in infra/.env}
+      RCLONE_CONFIG_B2_KEY: ${B2_APPLICATION_KEY:?set B2_APPLICATION_KEY in infra/.env}
+      RCLONE_CONFIG_B2_HARD_DELETE: "true"
+      B2_BUCKET: ${B2_BUCKET:?set B2_BUCKET in infra/.env}
+      N8N_API_URL: http://n8n:5678/api/v1
+      N8N_API_KEY: ${N8N_API_KEY:-}
+      GIT_REPO_SSH: ${GIT_REPO_SSH:-}
+      GIT_BRANCH: ${GIT_BRANCH:-main}
+      GIT_AUTHOR_NAME: ${GIT_AUTHOR_NAME:-recallo-backup}
+      GIT_AUTHOR_EMAIL: ${GIT_AUTHOR_EMAIL:-backup@localhost}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    volumes:
+      - backup_work:/work
+      - uptime_kuma_data:/sources/uptime-kuma:ro
+      - ./secrets/deploy_key:/run/secrets/deploy_key:ro
+    networks: [internal]
+    logging: *default-logging
+
+networks:
+  internal:
+
+volumes:
+  postgres_data:
+  n8n_data:
+  caddy_data:
+  caddy_config:
+  uptime_kuma_data:
+  backup_work:

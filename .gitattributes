@@ -1,0 +1,7 @@
+# Everything that runs on the Linux VPS must keep LF line endings,
+# even when the repo is checked out on Windows.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

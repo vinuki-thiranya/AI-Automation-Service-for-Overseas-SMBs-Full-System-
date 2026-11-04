@@ -1,0 +1,4 @@
+# Times are in the container TZ (infra/.env TZ). Default Asia/Colombo:
+# 02:00 Colombo = 06:30 Sydney (before clinics open), 21:30 London (after close).
+0 2 * * * /usr/local/bin/backup.sh
+30 2 * * * /usr/local/bin/export-workflows.sh

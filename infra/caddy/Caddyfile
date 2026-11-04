@@ -1,0 +1,45 @@
+{
+	email {$ACME_EMAIL}
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	servers {
+		# Cloudflare sits in front; trust its forwarded client IPs.
+		trusted_proxies static 173.245.48.0/20 103.21.244.0/22 103.22.200.0/22 103.31.4.0/22 141.101.64.0/18 108.162.192.0/18 190.93.240.0/20 188.114.96.0/20 197.234.240.0/22 198.41.128.0/17 162.158.0.0/15 104.16.0.0/13 104.24.0.0/14 172.64.0.0/13 131.0.72.0/22
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+	}
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# n8n: editor UI, REST API and client webhooks (ops.<DOMAIN>/webhook/<client_id>/<channel>)
+ops.{$DOMAIN} {
+	import security_headers
+	encode zstd gzip
+
+	# Webhook bodies (WhatsApp media metadata, form posts) stay small; cap them.
+	request_body {
+		max_size 10MB
+	}
+
+	reverse_proxy n8n:5678 {
+		flush_interval -1
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Uptime Kuma: status page and monitor admin
+status.{$DOMAIN} {
+	import security_headers
+	encode zstd gzip
+	reverse_proxy uptime-kuma:3001
+}

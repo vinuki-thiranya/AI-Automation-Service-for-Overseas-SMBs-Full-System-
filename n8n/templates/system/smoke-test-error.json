@@ -1,0 +1,38 @@
+{
+  "name": "System — Smoke test (always fails)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "system/smoke-test",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "9a3c2b10-1f4e-4d7a-8b2c-3e5f6a7b8c01",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "3d0f8f43-2b7e-4f0e-9a51-8c6f5b2d7e11"
+    },
+    {
+      "parameters": {
+        "message": "Smoke test: this error is intentional. If you can read this in Telegram, alerting works."
+      },
+      "id": "9a3c2b10-1f4e-4d7a-8b2c-3e5f6a7b8c02",
+      "name": "Fail on purpose",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "Fail on purpose", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "__ERROR_WORKFLOW_ID__"
+  }
+}

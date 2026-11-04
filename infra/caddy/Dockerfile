@@ -1,0 +1,7 @@
+# Caddy with the Cloudflare DNS plugin, so certificates issue and renew via DNS-01
+# even with the Cloudflare proxy (orange cloud) switched on.
+FROM caddy:2.11.7-builder-alpine AS builder
+RUN xcaddy build v2.11.7 --with github.com/caddy-dns/cloudflare@v0.2.4
+
+FROM caddy:2.11.7-alpine
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
