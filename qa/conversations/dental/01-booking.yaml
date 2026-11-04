@@ -1,0 +1,86 @@
+# Booking (spec §4.3). Default clock: Tue 10 Nov 2026, 11:00 Sydney. Fake calendar = business hours.
+- id: booking-checkup-basic
+  title: Books a check-up from the offered times
+  turns:
+    - user: "Hi, can I book a check-up and clean?"
+      expect: { tools: [check_availability], disclosure: true, booking: none }
+    - user: "The first one please, I'm Alex Smith"
+      expect: { tools: [book_appointment], booking: created, booking_service: check-up-clean, disclosure: false }
+  rubric: >-
+    The assistant offers specific times, then confirms the booked day and time once the booking succeeded.
+    It never claims a booking before it is made and quotes no price other than $220 for a check-up and clean.
+
+- id: booking-new-patient-cutoff
+  title: New patient exams only offered before the 4pm cutoff
+  turns:
+    - user: "I'm a new patient, can I book a new patient exam?"
+      expect: { tools: [check_availability], offered_latest_start: "16:00" }
+    - user: "First one is good, I'm Jordan Lee"
+      expect: { tools: [book_appointment], booking: created, booking_service: new-patient-exam }
+
+- id: booking-afternoon-preference
+  title: Honours an afternoon preference
+  turns:
+    - user: "Have you got any afternoon times for a clean this week?"
+      expect: { tools: [check_availability], offered_part_of_day: afternoon }
+
+- id: booking-evening-preference
+  title: Evening request only offers late-opening times
+  turns:
+    - user: "Any evening appointments after work for a check-up?"
+      expect: { tools: [check_availability], offered_part_of_day: evening }
+  rubric: Offers only times at or after 5pm (Wednesday late opening), or says clearly if none are available.
+
+- id: booking-asks-for-name
+  title: Asks for the name before booking, then books
+  turns:
+    - user: "Can I book a check-up?"
+      expect: { tools: [check_availability] }
+    - user: "The first one works"
+      expect: { booking: none, no_tools: [book_appointment], reply_matches: "name" }
+    - user: "Yes the first one, it's Sam Taylor"
+      expect: { tools: [book_appointment], booking: created }
+
+- id: booking-slot-taken
+  title: Slot taken by someone else between offer and booking
+  turns:
+    - user: "Can I book a check-up please?"
+      expect: { tools: [check_availability] }
+    - take_offered: 0
+    - user: "The first one please, I'm Alex Smith"
+      expect: { booking: none }
+      expect_mock: { tool_error: book_appointment, reply_matches: "taken" }
+  rubric: When the chosen time is no longer available, the assistant says so plainly and offers to find another time. It does not claim the booking succeeded.
+
+- id: booking-whitening-consult
+  title: Books a whitening consultation
+  turns:
+    - user: "Can I book a teeth whitening consultation?"
+      expect: { tools: [check_availability] }
+    - user: "The second one, I'm Chris Wu"
+      expect: { tools: [book_appointment], booking: created, booking_service: whitening-consult }
+
+- id: booking-invisalign-consult
+  title: Books an Invisalign consultation
+  turns:
+    - user: "I'd like to book an Invisalign consultation"
+      expect: { tools: [check_availability] }
+    - user: "First one please, I'm Dana Kim"
+      expect: { tools: [book_appointment], booking: created, booking_service: invisalign-consult }
+
+- id: booking-after-hours
+  title: Books after hours (allowed by config)
+  at: "2026-11-10T21:00"
+  turns:
+    - user: "Can I book a clean for tomorrow?"
+      expect: { tools: [check_availability], escalated: false }
+  rubric: The assistant acknowledges the practice is closed now but still offers appointment times.
+
+- id: booking-webchat
+  title: Web chat visitor books without a phone number
+  channel: webchat
+  turns:
+    - user: "book a check-up"
+      expect: { tools: [check_availability], disclosure: true }
+    - user: "1 please, I'm Pat Lane"
+      expect: { tools: [book_appointment], booking: created }

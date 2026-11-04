@@ -81,9 +81,10 @@ Open `https://status.<DOMAIN>` and create the admin account. Choose SQLite as th
 |---|---|---|
 | n8n health | HTTP(s) – Keyword | `https://ops.<DOMAIN>/healthz`, keyword `ok` |
 | n8n editor TLS | HTTP(s) | `https://ops.<DOMAIN>/`, cert expiry notification on |
-| Each client webhook | HTTP(s) | `https://ops.<DOMAIN>/webhook/<client_id>/health` (Phase 2 adds this endpoint per client) |
+| recallo-core | HTTP(s) – Keyword | `https://ops.<DOMAIN>/in/<any live client_id>/health`, keyword `ok` |
+| Each client | HTTP(s) – Keyword | `https://ops.<DOMAIN>/in/<client_id>/health`, keyword `"ok":true`. Alert also on keyword `"degraded":true` (repeated failures). |
 | Client dashboard | HTTP(s) | dashboard URL (Phase 3) |
-| Backup freshness | Push | Phase 2: `backup.sh` pings a push URL on success; alert if no ping for 26 h |
+| Backup freshness | Push | Create a Push monitor with a 26 h heartbeat. Put its URL (`http://uptime-kuma:3001/api/push/<token>`) in `BACKUP_PUSH_URL`. |
 
 Uptime Kuma itself is not monitored from inside the box. Add a free external check (for example a second Uptime Kuma instance, or Cloudflare health checks) on `https://status.<DOMAIN>` if you want that covered.
 
@@ -92,7 +93,8 @@ Uptime Kuma itself is not monitored from inside the box. Add a free external che
 | Task | Command |
 |---|---|
 | Status and health | `make ps` |
-| Logs | `make logs s=n8n` (or `caddy`, `backup`, `postgres`, `uptime-kuma`) |
+| Logs | `make logs s=core` (or `n8n`, `caddy`, `backup`, `postgres`, `uptime-kuma`) |
+| Run the core scheduler now | `docker compose --project-directory infra -f infra/docker-compose.yml exec core node -e "fetch('http://127.0.0.1:8080/v1/jobs/tick',{method:'POST',headers:{authorization:'Bearer '+process.env.CORE_JOB_TOKEN}}).then(r=>r.text()).then(console.log)"` |
 | Restart one service | `make restart s=n8n` |
 | Back up now | `make backup` |
 | Export workflows now | `make export-workflows` |
@@ -102,6 +104,7 @@ Uptime Kuma itself is not monitored from inside the box. Add a free external che
 **Schedules** (container TZ, default Asia/Colombo):
 - 02:00 database dump to B2 (n8n Postgres, Supabase if `SUPABASE_DB_URL` is set, Uptime Kuma data), then prune anything older than 30 days.
 - 02:30 workflow export to Git.
+- n8n → core (n8n timezone): every 5 min `/v1/jobs/tick` (reminders, no-shows, nurture, escalation timeouts); 03:00 `/v1/jobs/nightly` (metrics rollup, transcript retention purge); hourly at :05 `/v1/jobs/reports` (daily digest at 07:00 and the weekly report, both in each client's timezone).
 
 Any failure sends ❌ to Telegram.
 
@@ -168,4 +171,56 @@ Record the date and total time here:
 - n8n blocks `$env` access in nodes (`N8N_BLOCK_ENV_ACCESS_IN_NODE=true`), so a workflow cannot read the encryption key or DB password.
 - Execution data is pruned after 14 days, and successful executions are not saved. Client transcripts live in Supabase, where they are subject to retention.
 - Workflow exports strip `pinData` and `staticData`, because they can hold customer data.
-- Optional hardening: put `ops.<DOMAIN>` behind Cloudflare Access for the editor UI only (bypass for `/webhook/*` and `/healthz`).
+- Optional hardening: put `ops.<DOMAIN>` behind Cloudflare Access for the editor UI only (bypass for `/in/*`, `/widget.js`, `/webhook/*` and `/healthz`).
+- recallo-core is only reachable through Caddy at `/in/*` and `/widget.js`. `/v1/jobs/*` is internal (n8n → `core:8080`) and also needs the bearer `CORE_JOB_TOKEN`.
+
+## 9. Phase 2 deploy: recallo-core and Supabase (once)
+
+1. **Supabase project** in Sydney (`ap-southeast-2`). In the SQL editor, run `supabase/migrations/20261104000000_init.sql`, then `20261105000000_phase2.sql`, in that order. (Or `supabase db push` with the Supabase CLI linked to the project.)
+2. In the Supabase dashboard, enable **Vault** (Integrations → Vault) and **pg_cron** if you want the database to purge transcripts itself; the nightly n8n job already calls `purge_expired_transcripts()`.
+3. In `infra/.env`, set `SUPABASE_AU_URL`, `SUPABASE_AU_SERVICE_ROLE_KEY`, `META_APP_SECRET`, and `GOOGLE_OAUTH_CLIENT_ID/SECRET`. `make first-boot` adds `CORE_SECRET` and `CORE_JOB_TOKEN` if they're missing.
+4. Deploy: `make update`. This pulls main, takes a backup, builds `recallo/core`, and recreates Caddy with the `/in/*` route.
+5. `make bootstrap`. This installs the three core schedules and the `agency/core-jobs` credential next to the error workflow.
+6. Check: `curl -s https://ops.<DOMAIN>/widget.js | head -3` serves the widget, and `make logs s=core` shows `Server listening`.
+
+## 10. Provisioning a client (each deal, build days 0–6)
+
+1. Copy `config/clients/demo-clinic.json` to `config/clients/<client_id>.json` and fill it from the discovery call and access checklist. Run `make validate`.
+2. Create `config/clients/<client_id>.secrets.json`. It is gitignored; never commit it. Shapes:
+   ```json
+   {
+     "<id>/anthropic": "sk-ant-…",                       "<id>/openai": "sk-proj-…",
+     "<id>/whatsapp": "<Meta system-user token>",        "<id>/resend": "re_…",
+     "<id>/twilio": { "account_sid": "AC…", "auth_token": "…" },
+     "<id>/google": { "refresh_token": "…" },            "<id>/cliniko": "<api key ending -au1>",
+     "<id>/acuity": { "user_id": "…", "api_key": "…" },  "<id>/microsoft": { "tenant_id": "…", "client_id": "…", "client_secret": "…" },
+     "<id>/calendly": "<token>",  "<id>/hubspot": "<private app token>",  "<id>/telegram": { "bot_token": "…" }
+   }
+   ```
+   Create the Anthropic key in a **workspace for this client with a monthly spend limit**, and the OpenAI key in a project with a budget.
+3. Dry run: `node scripts/new-client.ts config/clients/<id>.json --secrets config/clients/<id>.secrets.json`. Fix every ✗.
+4. Apply: add `--apply`. This upserts the clients row, stores the secrets in Vault, embeds the FAQ, creates and tags the `<id> — events` n8n workflow, and registers the Telegram webhook if used. It then prints the URLs for step 5.
+5. Wire the providers with the printed values:
+   - Meta: callback URL and verify token; subscribe to `messages`; submit the listed templates.
+   - Twilio number: Messaging and Voice webhooks.
+   - The clinic's phone system: conditional call-forward (no answer or busy) to the Twilio number.
+   - The client's website: the web chat snippet.
+   - Web forms or Zapier: the lead URL.
+   - Uptime Kuma: the client health monitor.
+6. QA for this client:
+   - Copy `qa/conversations/dental/` to `qa/conversations/<id>/`.
+   - Adjust service IDs, prices and FAQ answers to the client's.
+   - Run `npm run qa -- --vertical <id> --config config/clients/<id>.json`, then add `--live`.
+   - Hand over to the client for UAT on a test number.
+7. Delete the local `*.secrets.json` once Vault has the secrets, or move it to your password manager.
+
+## 11. Demo clinic go-live checklist (public demo number, spec §9)
+
+- [ ] §9 done (Supabase project, migrations, core deployed, bootstrap).
+- [ ] A Meta WhatsApp test number. Put its `phone_number_id` in `demo-clinic.json`, replacing `REPLACE_WITH_META_PHONE_NUMBER_ID`.
+- [ ] Two Google calendars for the fictional dentists, shared with the Google account that consents via OAuth. Put their calendar IDs in `demo-clinic.json` and the refresh token in the secrets file.
+- [ ] A Google Sheet for the CRM. Put its ID in `crm.sheet_id`.
+- [ ] Staff phones in `escalation.staff` and `owner_backup` changed to your own numbers.
+- [ ] `node scripts/new-client.ts config/clients/demo-clinic.json --secrets … --apply`, then wire the printed URLs.
+- [ ] Text the demo number: ask the hours, book a check-up, ask for a person, then reply from a staff phone.
+- [ ] Record the two demo videos (spec §9, weeks 1–2).

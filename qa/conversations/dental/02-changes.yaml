@@ -1,0 +1,42 @@
+# Cancel and reschedule (spec §4.3), including the cancellation-window policy.
+- id: change-cancel-outside-window
+  title: Cancels a booking three days out without fuss
+  contact: { name: Alex Smith }
+  existing_booking: { hours_ahead: 72, service_id: check-up-clean }
+  turns:
+    - user: "Hi, I need to cancel my appointment please"
+      expect: { tools: [cancel], booking: cancelled, opted_out: false }
+
+- id: change-cancel-inside-window
+  title: Late cancellation needs confirmation first
+  contact: { name: Alex Smith }
+  existing_booking: { hours_ahead: 4, service_id: check-up-clean }
+  turns:
+    - user: "Can I cancel my booking for today?"
+      expect: { booking: booked, reply_matches: "24|late|fee|window" }
+    - user: "Yes that's fine, please cancel it"
+      expect: { booking: cancelled }
+  rubric: Before cancelling, the assistant explains the 24-hour cancellation policy (a fee may apply) and asks the customer to confirm. It cancels only after they confirm.
+
+- id: change-reschedule-offers-times
+  title: Reschedule request offers new times
+  contact: { name: Alex Smith }
+  existing_booking: { hours_ahead: 72, service_id: check-up-clean }
+  turns:
+    - user: "Could I reschedule my appointment to another day?"
+      expect: { tools: [check_availability], booking: booked }
+
+- id: change-cancel-without-booking
+  title: Cancel request with no booking on file
+  turns:
+    - user: "I want to cancel"
+      expect: { no_tools: [cancel], opted_out: false, booking: none }
+  rubric: The assistant does not pretend to cancel anything. It says it can't find a booking or asks for details, or hands over to the team.
+
+- id: change-bare-cancel-is-optout
+  title: A bare "CANCEL" is an SMS opt-out, not a booking change
+  contact: { name: Alex Smith }
+  existing_booking: { hours_ahead: 72, service_id: check-up-clean }
+  turns:
+    - user: "CANCEL"
+      expect: { handled_by: stop, opted_out: true, booking: booked, no_tools: true }

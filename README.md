@@ -11,7 +11,7 @@ Infrastructure, automation templates and (later) the client dashboard and websit
 | Phase | Scope | State |
 |---|---|---|
 | 1 | Control plane: n8n + Postgres, Caddy TLS, Uptime Kuma, backups to B2, Telegram error alerts | Built, not yet run on a server |
-| 2 | Template library for Packages A and B (nine modules), `scripts/new-client.ts`, 50-conversation QA | Not started |
+| 2 | recallo-core (Packages A and B modules), n8n schedules, `scripts/new-client.ts`, web chat widget, 50-conversation QA | Built. 72 tests and 50/50 mock QA pass. Live QA and the live demo number not done yet (see [PLAN.md §7](PLAN.md#7-phase-2-as-built-2026-11-04)) |
 | 3 | Client dashboard (Next.js + Supabase magic links) and agency website + SEO | Not started |
 
 ## Quick start (on the VPS)
@@ -22,4 +22,14 @@ make first-boot                              # builds images, starts the stack
 # create the n8n owner + API key in the UI, put N8N_API_KEY in infra/.env, then:
 make bootstrap                               # Telegram error workflow
 ```
-See [RUNBOOK.md](RUNBOOK.md) for the full procedure.
+See [RUNBOOK.md](RUNBOOK.md) for the full procedure (§9 deploys recallo-core, §10 provisions a client).
+
+## Develop locally (no Docker needed)
+```bash
+npm ci
+npm run typecheck && npm test        # 72 unit tests (engine, adapters, server)
+npm run qa                           # 50-conversation QA with mock models
+npm run qa -- --live                 # same with real Claude models (ANTHROPIC_API_KEY, ~USD 1–3)
+node scripts/new-client.ts config/clients/demo-clinic.json   # provisioning dry run
+bash scripts/validate.sh             # everything above + compose policy, schema, secret scan
+```

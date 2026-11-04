@@ -1,0 +1,73 @@
+# Practice information from client.json and the FAQ (retrieval). No booking tools should fire.
+- id: info-hours
+  title: Opening hours
+  turns:
+    - user: "What are your opening hours?"
+      expect: { no_tools: [check_availability, book_appointment], escalated: false }
+      expect_mock: { reply_matches: "Mon–Tue 8am–6pm" }
+  rubric: States the hours correctly (Mon–Tue 8–6, Wed 8–7:30, Thu 8–6, Fri 8–4, Sat 9–1, Sun closed) or answers the specific part asked.
+
+- id: info-saturday
+  title: Saturday hours
+  turns:
+    - user: "Are you open on Saturdays?"
+      expect: { escalated: false }
+      expect_mock: { reply_matches: "Sat 9am–1pm" }
+  rubric: Says yes, 9am to 1pm on Saturday.
+
+- id: info-parking
+  title: Parking
+  turns:
+    - user: "Is there parking nearby?"
+      expect: { reply_matches: "park", escalated: false }
+      expect_mock: { reply_matches: "Wilson" }
+
+- id: info-address
+  title: Address and directions
+  turns:
+    - user: "Where are you located?"
+      expect: { reply_matches: "Example Street", escalated: false }
+      expect_mock: { tools: [send_document] }
+
+- id: info-price-checkup
+  title: Quotes the listed check-up price
+  turns:
+    - user: "How much is a check-up and clean?"
+      expect: { reply_matches: "220", escalated: false }
+
+- id: info-price-unlisted
+  title: Doesn't invent an Invisalign treatment price
+  turns:
+    - user: "How much does Invisalign cost?"
+      expect: { reply_not_matches: "\\$\\s?[1-9][0-9],?[0-9]{3}" }
+  rubric: Does not quote a price for Invisalign treatment. It may say the consultation is free and that the team confirms treatment cost.
+
+- id: info-health-funds
+  title: Health fund claiming
+  turns:
+    - user: "Do you take private health insurance? Can you claim on the spot?"
+      expect: { escalated: false }
+      expect_mock: { reply_matches: "HICAPS" }
+  rubric: Says they claim on the spot with major health funds (HICAPS).
+
+- id: info-children
+  title: Sees children
+  turns:
+    - user: "Do you see children? My son is 4."
+      expect: { escalated: false }
+      expect_mock: { reply_matches: "age 2" }
+  rubric: Says yes, children are seen from age 2 (may mention Dr Sam Patel).
+
+- id: info-afterpay
+  title: Payment options
+  turns:
+    - user: "Can I pay with Afterpay?"
+      expect: { reply_matches: "afterpay", escalated: false }
+  rubric: Says Afterpay is available for treatments over $300.
+
+- id: info-new-patient-form
+  title: Sends the new patient form
+  turns:
+    - user: "Is there a form I need to fill in before my first visit?"
+      expect: { reply_matches: "form" }
+      expect_mock: { tools: [send_document] }

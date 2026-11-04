@@ -24,14 +24,16 @@ This is the answer to **Prompt 1** in [docs/spec.md §12](docs/spec.md#12-claude
 | Dashboard | Next.js on Vercel + Supabase Auth magic links | Phase 3 |
 | Website | Claude Design handoff → Next.js on Vercel | Phase 3 |
 
-**Request flow.**
-1. A webhook arrives at `ops.<DOMAIN>/webhook/<client_id>/<channel>`.
-2. n8n verifies the signature, normalizes the message to `{channel, contact_id, text, attachments, timestamp, metadata}`, dedupes on the provider message ID, resolves or merges the contact, and loads the thread from Supabase.
+**Request flow** (as built in Phase 2, see §7).
+1. A webhook arrives at `ops.<DOMAIN>/in/<client_id>/<channel>`. Caddy routes `/in/*` to **recallo-core**.
+2. Core verifies the signature on the raw body, normalizes the message to `{channel, contact_id, text, attachments, timestamp, metadata}`, dedupes on the provider message ID, resolves or merges the contact, and loads the thread from Supabase.
 3. The guardrail classifier (Haiku) runs.
 4. Retrieval fetches the top 5 FAQ chunks, then Sonnet runs with tools.
-5. n8n executes any tool calls (booking, CRM, escalation).
+5. Core executes the tool calls (booking, CRM, escalation) with every argument validated.
 6. The reply goes out on the same channel; the transcript, metrics and usage are written.
-7. Escalations go to the staff group. Errors go to Telegram.
+7. Escalations go to staff phones (WhatsApp card or SMS) or a Telegram group. Errors go to the ops Telegram chat.
+
+n8n runs the schedules (reminders, nurture, rollups, reports), the per-client events hook and error alerting.
 
 ---
 
@@ -52,25 +54,28 @@ This is the answer to **Prompt 1** in [docs/spec.md §12](docs/spec.md#12-claude
 - The nightly dump lands in B2 and the workflow export lands in Git.
 - A timed restore onto a fresh VPS finishes in under 1 hour.
 
-### Phase 2 — Template library, Packages A and B (spec §3, §4.1–4.9)
-| Module | Template(s) | Package |
+### Phase 2 — Template library, Packages A and B (spec §3, §4.1–4.9), built
+The logic lives in **recallo-core** (TypeScript, `core/`), so it can be unit-tested and QA'd without Docker. n8n stays a thin layer. See §7 for the design decisions.
+
+| Module | Where | Package |
 |---|---|---|
-| 4.1 Channel ingestion | `ingest-whatsapp`, `ingest-twilio-sms`, `ingest-webchat`, `missed-call` (+ webchat widget JS) | A, B |
-| 4.2 Conversation engine | `conversation-engine` (guardrail → retrieve → LLM + tools → reply), `faq-embed` | A, B |
-| 4.3 Booking | adapter sub-workflows: Google Calendar, Microsoft Bookings, Calendly, Cliniko, Jane, Acuity; `reminders` (24h/2h), `no-show` | A |
-| 4.4 Lead qualification | `lead-intake`, `lead-score`, `nurture-14d`, speed-to-lead metric | B |
-| 4.5 CRM sync | HubSpot, Pipedrive, GoHighLevel, Google Sheets, all idempotent on external ID | A, B |
+| 4.1 Channel ingestion | `core/src/ingest/*`: WhatsApp, Twilio SMS, missed-call voice, web chat (+ `webchat/widget.js`), lead forms | A, B |
+| 4.2 Conversation engine | `core/src/engine/*`, `core/src/llm/*`: guardrail → retrieve → Sonnet + tools → price guard → reply | A, B |
+| 4.3 Booking | `core/src/booking/*`: Google Calendar, Cliniko, Acuity, Microsoft Bookings, Calendly; Jane = link-out. Reminders and no-shows in `jobs.ts` | A |
+| 4.4 Lead qualification | `core/src/leads.ts`: questions, scoring, routing, nurture, speed-to-lead | B |
+| 4.5 CRM sync | `core/src/crm/*`: HubSpot, Pipedrive, GoHighLevel, Google Sheets | A, B |
 | 4.6 Document capture | deferred (Package C) | — |
 | 4.7 Reviews | deferred (Package C) | — |
-| 4.8 Reporting | `metrics-rollup` (nightly → `metrics_daily`), `weekly-owner-report` | A, B |
-| 4.9 Escalation | `escalate` (staff WhatsApp card + "I'll take it"), `staff-relay`, 2-hour AI pause | A, B |
+| 4.8 Reporting | `core/src/reporting.ts`: nightly `metrics_daily` rollup, weekly owner report, daily digest | A, B |
+| 4.9 Escalation | `core/src/escalation.ts`: staff card + "I'll take it", claim, relay, 2-hour AI pause, owner backup | A, B |
 
 Plus:
-- `scripts/new-client.ts`: validates `client.json`, inserts Supabase rows, creates the n8n project and credentials, copies templates, and prints webhook URLs.
-- `qa/`: the 50-conversation QA suite as a runnable test.
-- `config/clients/demo-clinic.json` wired to a public demo number.
+- `n8n/templates/packages/`: the core schedules and the per-client events workflow.
+- `scripts/new-client.ts`: validates `client.json`, upserts the Supabase row, stores secrets in Vault, embeds the FAQ, creates the n8n events workflow, and prints every URL to configure.
+- `qa/`: the 50-conversation QA suite (`npm run qa`, `npm run qa -- --live`).
+- `config/clients/demo-clinic.json`: the demo clinic (fill the `REPLACE_WITH_*` values to go live).
 
-**Exit criteria**
+**Exit criteria** (status in §7)
 - The demo clinic books a real Google Calendar slot over WhatsApp.
 - The QA suite passes at least 48 of 50.
 - p95 response time is under 10 s.
@@ -99,7 +104,7 @@ Plus:
 | `booking` | adapter + credential ref, calendars, buffer minutes, new-patient cutoff, reminder offsets, no-show follow-up delay |
 | `lead_qualification` | questions (id, text, type, options, weight), thresholds for hot/warm, nurture sequence |
 | `crm` | adapter + credential ref, field mapping, source-of-truth rules |
-| `escalation` | staff group (WhatsApp/Slack/Telegram), contacts, AI pause minutes (120) |
+| `escalation` | channel (`whatsapp_staff` / `telegram` / `sms`), staff names and phones, owner backup, claim timeout, AI pause minutes (120) |
 | `reporting` | owner recipients, weekly day and time, revenue per booking for the "revenue influenced" estimate |
 | `compliance` | country regime (TCPA / Spam Act / PECR), consent text, STOP keywords, retention months (12), PHI-minimization flag |
 
@@ -108,12 +113,12 @@ Plus:
 **Isolation model.**
 | Layer | Isolation |
 |---|---|
-| n8n | One **project** per client holds its workflows and credentials. Partner-plan or large clients get their own n8n container (~300 MB RAM) on the same box. |
+| n8n | Per-client workflows are tagged `client:<id>` and prefixed with the client id. n8n *projects* need a paid n8n plan, so they aren't used. Client credentials don't live in n8n; they are in Supabase Vault (below). Partner-plan or large clients can still get their own n8n container (~300 MB RAM). |
 | Supabase | One shared schema. **`client_id` on every table, RLS on every table.** n8n writes with the service role. Dashboard users read through RLS, keyed on `user_roles` (agency / owner / staff). This is spec §11's wording, and it keeps the dashboard to one query path. Data residency comes from the region's Supabase project. |
 | Secrets | n8n credential store (encrypted with `N8N_ENCRYPTION_KEY`) plus Supabase Vault. One set per client, nothing shared. |
 | Messaging | WhatsApp number per client, Twilio sub-account per client. |
 | LLM | Anthropic: a **workspace per client** with a workspace spend limit, and a key in that workspace. OpenAI: a **project per client** with a budget. Usage is logged to `usage_events` for pass-through billing. |
-| Webhooks | Path-scoped per client and signature-verified per provider. |
+| Webhooks | `/in/<client_id>/<channel>`, signature-verified per provider (Meta app secret, the client's own Twilio auth token, per-client derived tokens for lead forms and Telegram). |
 
 ---
 
@@ -162,9 +167,35 @@ Plus:
 
 ---
 
-## 6. Open questions (please answer before Phase 2)
+## 6. Open questions
+Phase 2 went ahead on the recommended defaults: Supabase in Sydney (`ap-southeast-2`), Google Calendar first and Cliniko second. Still open:
 1. **Domain:** is `recallo.ai` (or `recallo.com.au` / `getrecallo.com`) available and acceptable, or do you want a different brand?
-2. **First Supabase region:** AU (Sydney), since the first vertical is Australian clinics? I recommend creating the first project in `ap-southeast-2`.
-3. **First booking adapter to build deeply:** Cliniko (most common in AU allied health) or Google Calendar (fastest for demos)? I recommend Google Calendar for the demo and Cliniko second.
-4. **OpenAI fallback model:** confirm which OpenAI chat model you want as fallback. The demo config says `gpt-5-mini`; verify that ID against your OpenAI account before Phase 2.
-5. **Telegram:** create the bot and alerts chat now so the Phase 1 error workflow can be tested.
+2. **OpenAI fallback model:** `gpt-5-mini` in the demo config is a placeholder. Confirm the model ID and its price (`core/src/llm/pricing.ts`) against your OpenAI account.
+3. **Telegram:** the bot and alerts chat are needed for the Phase 1 error workflow and core alerts.
+
+---
+
+## 7. Phase 2 as built (2026-11-04)
+
+**Design decisions**
+| Decision | Why |
+|---|---|
+| Logic in a TypeScript service (`core/`) rather than inside n8n | Testable without Docker (72 unit tests, 50-conversation QA locally). Tool inputs are validated in code. Signature checks need the raw request body, which an n8n hop makes fragile. |
+| Inbound webhooks go to core at `/in/<client_id>/<channel>` | Same reasons. n8n keeps schedules (`/v1/jobs/*`), a per-client events webhook (`<client_id>/events`) for custom automations, and error alerts. |
+| Node 26 runs the `.ts` sources directly | No build step; the Docker image copies `core/src` and runs `node core/src/main.ts`. |
+| Claude Sonnet 5.5, effort `low`, manual tool loop (max 6 iterations), server-side refusal fallback | Chat latency and cost. The loop validates every tool input and caps cost. The fallback handles safety-classifier refusals. |
+| Per-turn facts as a mid-conversation system message | The per-client system prompt stays byte-identical, so it caches, and customer text never mixes with operator instructions. |
+| Code-enforced guards: AI disclosure, STOP/START (whole message only), WhatsApp 24h window, invented-price check, new-patient cutoff, offered-slot-only booking, spend cap, rate limit, degraded mode after >3 failures/hour | These shouldn't depend on the model following instructions. |
+| Escalation to staff phones (`whatsapp_staff`) or a Telegram group, not a WhatsApp group | The WhatsApp Cloud API can't post into groups. Staff get a template card with an "I'll take it" button (or SMS with `TAKE <code>`). |
+| Jane in link-out mode | Jane's API is partner-gated and documents no booking endpoint. The assistant sends `booking.booking_link` instead. |
+| Calendly books through `POST /invitees` | Calendly's Scheduling API, available on paid Calendly plans. |
+| Client secrets in Supabase Vault (`put/get_client_secret`, service-role only) | Core and `new-client.ts` share them; nothing is copied into n8n per client. |
+
+**Exit criteria status**
+| Criterion | Status |
+|---|---|
+| QA suite passes ≥ 48/50 | Mock models: **50/50**. Live run (`npm run qa -- --live`, about USD 1–3): **not run yet**, needs your Anthropic key. |
+| Demo clinic books a real Google Calendar slot over WhatsApp | **Not done.** Needs the Supabase project, Meta number, Google OAuth client and VPS deploy (RUNBOOK §9). |
+| p95 response under 10 s | **Not measured.** Needs live traffic; `metrics_daily.p95_response_seconds` records it. |
+
+**Verified only against documentation and HTTP fakes, not live accounts:** Cliniko, Acuity, Microsoft Bookings, Calendly, HubSpot, Pipedrive, GoHighLevel, Google Sheets, Resend, the Twilio and WhatsApp send formats, and the n8n template imports. Each gets verified on the client's integration days (spec §6.3, days 4–6).

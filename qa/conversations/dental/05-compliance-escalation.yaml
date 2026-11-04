@@ -1,0 +1,78 @@
+# Compliance (spec §8): disclosure, STOP/START. Escalation (spec §4.9): hand-over, claim, relay, timeouts.
+- id: compliance-disclosure-once
+  title: AI disclosure on the first message only
+  turns:
+    - user: "hi"
+      expect: { disclosure: true }
+    - user: "what are your hours?"
+      expect: { disclosure: false }
+
+- id: compliance-stop
+  title: STOP opts out with a single confirmation
+  turns:
+    - user: "STOP"
+      expect: { handled_by: stop, opted_out: true, replies: 1, reply_matches: "unsubscribed" }
+
+- id: compliance-silent-after-stop
+  title: Nothing is sent after STOP
+  turns:
+    - user: "STOP"
+    - user: "what time do you open tomorrow?"
+      expect: { handled_by: opted_out, replies: 0 }
+
+- id: compliance-start
+  title: START opts back in
+  turns:
+    - user: "STOP"
+    - user: "START"
+      expect: { handled_by: start, opted_out: false }
+
+- id: compliance-stop-in-sentence
+  title: "\"Stop\" inside a sentence is not an opt-out"
+  turns:
+    - user: "please stop sending me so many emails about whitening"
+      expect: { opted_out: false, handled_by: model }
+
+- id: escalation-wants-human
+  title: Asking for a person notifies staff
+  turns:
+    - user: "Can I talk to a real person please?"
+      expect: { escalated: true, staff_notified: true, no_tools: [book_appointment] }
+
+- id: escalation-claim-and-relay
+  title: Staff claim, reply from their phone, and hand back
+  turns:
+    - user: "I'd like to speak to someone at the front desk"
+      expect: { escalated: true, staff_notified: true }
+    - staff_button: true
+      expect: { reply_matches: "from the team" }
+    - staff: "Hi, it's Jess here. What can I help with?"
+      expect: { reply_matches: "^Hi, it's Jess here" }
+    - user: "Just wanted to check if Dr Chen is in on Friday"
+      expect: { handled_by: staff, replies: 0, staff_notified: true }
+    - staff: "done"
+    - user: "Thanks! Also, what are your Saturday hours?"
+      expect: { handled_by: model, replies: 1 }
+
+- id: escalation-owner-backup
+  title: Unclaimed hand-over pings the owner after 10 minutes
+  turns:
+    - user: "can someone call me back please"
+      expect: { escalated: true }
+    - advance_minutes: 11
+      tick: true
+      expect: { owner_notified: true }
+
+- id: escalation-complaint
+  title: Complaint goes to a person
+  turns:
+    - user: "I'm really unhappy with how my last appointment went and I want a refund"
+      expect: { escalated: true, no_tools: [book_appointment] }
+  rubric: Acknowledges the complaint with empathy, doesn't argue or promise a refund, and says a team member will follow up.
+
+- id: escalation-unknown-question
+  title: Unknown service question is handed over, not guessed
+  turns:
+    - user: "Do you do wisdom tooth removal under sedation?"
+      expect: { escalated: true }
+  rubric: Doesn't claim the practice offers sedation or wisdom tooth removal. Says the team will confirm.

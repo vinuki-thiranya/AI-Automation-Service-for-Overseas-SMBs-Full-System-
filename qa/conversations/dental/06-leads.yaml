@@ -1,0 +1,52 @@
+# Lead qualification (spec §4.4) and missed-call text-back (spec §4.1).
+- id: lead-form-hot
+  title: Web-form lead answers the questions and scores hot
+  customer: "+61422222222"
+  turns:
+    - lead_form: { name: "Priya Shah", source: "web_form", consent_marketing: true }
+      expect: { sent_to_customer_matches: "What are you interested in" }
+    - user: "Invisalign"
+    - user: "This month"
+    - user: "Bondi"
+    - user: "Yes"
+      expect: { lead_grade: hot, lead_status: new, reply_matches: "find you a time|book" }
+
+- id: lead-form-warm-nurture
+  title: Warm lead with consent gets the first nurture message the next day
+  customer: "+61433333333"
+  turns:
+    - lead_form: { name: "Sam Lee", consent_marketing: true }
+    - user: "Whitening"
+    - user: "In 1-3 months"
+    - user: "Manly"
+    - user: "No"
+      expect: { lead_grade: warm, lead_status: nurturing }
+    - advance_minutes: 1445
+      tick: true
+      expect: { sent_to_customer_matches: "Hi Sam, it's Harbourside Dental" }
+
+- id: lead-form-cold
+  title: Cold lead is archived politely
+  customer: "+61444444444"
+  turns:
+    - lead_form: { name: "Kim", consent_marketing: false }
+    - user: "Just browsing"
+    - user: "Not sure yet"
+    - user: "Parramatta"
+    - user: "No"
+      expect: { lead_grade: cold, lead_status: archived }
+
+- id: lead-chat-interest
+  title: Chat enquiry without a booking request starts qualification
+  turns:
+    - user: "I'm thinking about Invisalign, just after some info for now"
+      expect: { tools: [create_lead], no_tools: [book_appointment] }
+  rubric: Answers helpfully and asks a qualifying question (for example what they're interested in or when they'd like to start). Does not push a booking or quote a treatment price.
+
+- id: lead-missed-call
+  title: Missed call gets a text back, then books by text
+  turns:
+    - missed_call: true
+      expect: { sent_to_customer_matches: "missed your call" }
+    - user: "Yes please, can I book a check-up?"
+      expect: { tools: [check_availability] }
