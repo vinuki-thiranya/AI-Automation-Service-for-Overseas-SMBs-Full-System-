@@ -145,6 +145,14 @@ describe.skipIf(!url || !serviceKey || !anonKey)("dashboard access rules", () =>
     expect(direct.data ?? []).toEqual([]);   // no update policy: the RPC is the only write path
   });
 
+  it("buckets enquiries by local weekday and hour, scoped like messages", async () => {
+    const rows = await must(users.staffA.rpc("enquiry_hours", { p_client: ids.a.client, p_from: "2000-01-01", p_to: "2100-01-01" })) as { weekday: number; hour: number; enquiries: number }[];
+    expect(rows.reduce((n, r) => n + r.enquiries, 0)).toBe(1);
+    expect(rows[0]!.weekday).toBeGreaterThanOrEqual(1);
+    expect(rows[0]!.hour).toBeLessThan(24);
+    expect(await must(users.staffA.rpc("enquiry_hours", { p_client: ids.b.client, p_from: "2000-01-01", p_to: "2100-01-01" }))).toEqual([]);
+  });
+
   it("gives anonymous callers nothing", async () => {
     const anon = createClient(url, anonKey, { auth: { persistSession: false } });
     expect((await anon.rpc("my_memberships")).error).not.toBeNull();

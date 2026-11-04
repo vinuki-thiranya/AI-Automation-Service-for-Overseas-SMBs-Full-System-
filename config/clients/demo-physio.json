@@ -1,0 +1,317 @@
+{
+  "$schema": "../client.schema.json",
+  "schema_version": 1,
+  "client_id": "demo-physio",
+  "name": "Northside Physio (demo)",
+  "vertical": "physio",
+  "region": "au",
+  "timezone": "Australia/Melbourne",
+  "locale": "en-AU",
+  "status": "demo",
+  "packages": [
+    "A",
+    "D"
+  ],
+  "care_plan": "partner",
+  "business": {
+    "legal_name": "Northside Physio Pty Ltd (fictional)",
+    "address": "12 Example Road, Brunswick VIC 3056",
+    "phone": "+61300000000",
+    "email": "frontdesk@example.com",
+    "website": "https://example.com",
+    "google_review_url": "https://example.com/review",
+    "parking": "Free customer parking behind the building, entry via Example Lane.",
+    "hours": {
+      "mon": [
+        {
+          "open": "07:00",
+          "close": "19:00"
+        }
+      ],
+      "tue": [
+        {
+          "open": "07:00",
+          "close": "19:00"
+        }
+      ],
+      "wed": [
+        {
+          "open": "07:00",
+          "close": "19:00"
+        }
+      ],
+      "thu": [
+        {
+          "open": "07:00",
+          "close": "20:00"
+        }
+      ],
+      "fri": [
+        {
+          "open": "07:00",
+          "close": "17:00"
+        }
+      ],
+      "sat": [
+        {
+          "open": "08:00",
+          "close": "13:00"
+        }
+      ],
+      "sun": []
+    },
+    "holidays": [
+      {
+        "date": "2026-11-03",
+        "name": "Melbourne Cup Day"
+      },
+      {
+        "date": "2026-12-25",
+        "name": "Christmas Day"
+      },
+      {
+        "date": "2026-12-28",
+        "name": "Boxing Day (observed)"
+      },
+      {
+        "date": "2027-01-01",
+        "name": "New Year’s Day"
+      }
+    ],
+    "services": [
+      {
+        "id": "initial-consult",
+        "name": "Initial physio consultation",
+        "duration_minutes": 60,
+        "price": {
+          "amount": 120,
+          "currency": "AUD"
+        },
+        "price_note": "health fund rebates claimable on the spot"
+      },
+      {
+        "id": "follow-up",
+        "name": "Follow-up consultation",
+        "duration_minutes": 30,
+        "price": {
+          "amount": 95,
+          "currency": "AUD"
+        }
+      },
+      {
+        "id": "sports-massage",
+        "name": "Remedial sports massage",
+        "duration_minutes": 45,
+        "price": {
+          "amount": 110,
+          "currency": "AUD"
+        }
+      },
+      {
+        "id": "clinical-pilates",
+        "name": "Clinical Pilates class",
+        "duration_minutes": 55,
+        "price": {
+          "amount": 45,
+          "currency": "AUD"
+        }
+      },
+      {
+        "id": "dry-needling",
+        "name": "Dry needling add-on",
+        "duration_minutes": 15,
+        "price": {
+          "amount": 30,
+          "currency": "AUD"
+        }
+      }
+    ],
+    "policies": {
+      "cancellation": "Please give 24 hours’ notice. Late cancellations are charged at 50%.",
+      "cancellation_notice_hours": 24,
+      "payment": "Card and HICAPS on the spot.",
+      "insurance": "We claim on the spot with all major health funds via HICAPS. Not a Medicare bulk-billing clinic."
+    },
+    "staff": [
+      {
+        "name": "Tom Reilly",
+        "role": "Principal physiotherapist",
+        "bio": "Sports and running injuries, 12 years in practice."
+      },
+      {
+        "name": "Priya Shah",
+        "role": "Physiotherapist",
+        "bio": "Clinical Pilates and post-surgical rehab."
+      },
+      {
+        "name": "Ben Okafor",
+        "role": "Clinic coordinator",
+        "bio": "Bookings, health funds and accounts."
+      }
+    ],
+    "documents": [
+      {
+        "id": "intake-form",
+        "name": "New client intake form",
+        "url": "https://example.com/forms/intake.pdf",
+        "when": "After booking an initial consultation"
+      }
+    ],
+    "faq_sources": [
+      {
+        "type": "file",
+        "ref": "config/clients/demo-physio.faq.md"
+      }
+    ]
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "phone_number_id": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+      "display_number": "+61400000000",
+      "credential": "demo-physio/whatsapp",
+      "templates": {
+        "reminder_24h": "appointment_reminder_24h",
+        "reminder_2h": "appointment_reminder_2h",
+        "no_show": "missed_appointment_rebook",
+        "missed_call": "missed_call_text_back",
+        "escalation_alert": "staff_escalation_alert"
+      }
+    },
+    "sms": {
+      "enabled": true,
+      "from_number": "+61400000001",
+      "credential": "demo-physio/twilio"
+    },
+    "webchat": {
+      "enabled": true,
+      "allowed_origins": [
+        "https://example.com"
+      ],
+      "accent_color": "#2F5D50"
+    },
+    "missed_call": {
+      "enabled": true,
+      "provider": "twilio",
+      "text_back_channel": "sms",
+      "text_back_delay_seconds": 10
+    },
+    "email": {
+      "enabled": true,
+      "from_address": "frontdesk@example.com",
+      "credential": "demo-physio/resend"
+    }
+  },
+  "assistant": {
+    "persona_name": "Max",
+    "tone": "Warm, brief and practical. Australian English. Plain words, no emojis, at most three short sentences per message.",
+    "disclosure_text": "Hi, I’m Max, Northside Physio’s virtual assistant. I can answer questions and book appointments; a team member can step in any time.",
+    "languages": [
+      "en"
+    ],
+    "forbidden_topics": [
+      "diagnosis or clinical advice about injuries or pain",
+      "exercise prescriptions",
+      "prices or discounts not on the price list",
+      "comments on other clinics"
+    ],
+    "extra_rules": [
+      "If someone describes a fall, a suspected fracture or numbness, tell them to see a GP or go to emergency, and offer to book a follow-up.",
+      "Never confirm a booking until book_appointment returns success."
+    ],
+    "after_hours": {
+      "greeting": "Thanks for messaging Northside Physio. We’re closed right now, but I can still book you in or answer questions.",
+      "emergency_text": "If it’s an emergency, call 000. For urgent advice after hours, call Nurse-on-Call on 1300 60 60 24.",
+      "allow_booking": true
+    },
+    "confidence_threshold": 0.7,
+    "max_messages_per_contact_per_hour": 30,
+    "llm": {
+      "primary": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "credential": "demo-physio/anthropic",
+        "effort": "low"
+      },
+      "classifier": {
+        "provider": "anthropic",
+        "model": "claude-haiku-5-5",
+        "credential": "demo-physio/anthropic",
+        "effort": "low"
+      },
+      "fallback": {
+        "provider": "openai",
+        "model": "gpt-5-mini",
+        "credential": "demo-physio/openai"
+      },
+      "embeddings": {
+        "provider": "openai",
+        "model": "text-embedding-3-small",
+        "credential": "demo-physio/openai"
+      },
+      "monthly_cap_usd": 50
+    }
+  },
+  "booking": {
+    "adapter": "cliniko",
+    "credential": "demo-physio/cliniko",
+    "account_id": "au1:00000",
+    "booking_link": "https://example.com/book",
+    "calendars": [
+      {
+        "id": "REPLACE_WITH_CLINIKO_PRACTITIONER_ID_TOM",
+        "practitioner": "Tom Reilly"
+      },
+      {
+        "id": "REPLACE_WITH_CLINIKO_PRACTITIONER_ID_PRIYA",
+        "practitioner": "Priya Shah"
+      }
+    ],
+    "buffer_minutes": 0,
+    "min_notice_minutes": 60,
+    "max_days_ahead": 42,
+    "reminders_hours_before": [
+      24
+    ],
+    "no_show_followup_minutes": 30,
+    "send_ics": true
+  },
+  "escalation": {
+    "channel": "whatsapp_staff",
+    "staff": [
+      {
+        "name": "Ben Okafor",
+        "phone": "+61400000013"
+      }
+    ],
+    "owner_backup": "+61400000012",
+    "claim_timeout_minutes": 10,
+    "ai_pause_minutes": 120
+  },
+  "reporting": {
+    "owner_emails": [
+      "owner@example.com"
+    ],
+    "daily_digest": true,
+    "weekly_day": "fri",
+    "weekly_time": "07:30",
+    "revenue_per_booking": {
+      "amount": 110,
+      "currency": "AUD"
+    }
+  },
+  "compliance": {
+    "regime": "au_spam_act",
+    "marketing_consent_text": "Reply YES if you'd like occasional tips and offers from Northside Physio. Reply STOP any time to opt out.",
+    "stop_keywords": [
+      "STOP",
+      "UNSUBSCRIBE",
+      "CANCEL",
+      "END",
+      "QUIT"
+    ],
+    "stop_reply": "You're unsubscribed from Northside Physio messages. Reply START to opt back in.",
+    "retention_months": 12,
+    "phi_minimization": true
+  }
+}
