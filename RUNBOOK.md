@@ -237,14 +237,12 @@ Credentials for testing live in `.env.local` at the repo root. It is gitignored,
    2. Enable the **Google Calendar API** and **Google Sheets API**.
    3. Configure the OAuth consent screen (External, Testing, add your Google account as a test user).
    4. Create an OAuth client of type **Desktop app**. Set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`.
-   5. Create a throwaway calendar and set `TEST_CALENDAR_ID` (Calendar settings → Integrate calendar).
-   6. Create a blank spreadsheet and set `TEST_SHEET_ID` (the long ID in its URL).
-   7. Run `node scripts/google-oauth.ts` in your own terminal. It opens Google consent and writes `GOOGLE_REFRESH_TOKEN` into `.env.local` without printing it.
-   8. In Testing mode, refresh tokens expire after 7 days; re-run the script when the checks report `invalid_grant`.
+   5. Run `node scripts/google-oauth.ts` and click **Allow** in the browser (Google warns the app is unverified while it's in Testing; choose Continue). It writes `GOOGLE_REFRESH_TOKEN` into `.env.local` without printing it. If `TEST_CALENDAR_ID` / `TEST_SHEET_ID` are empty, it also creates a "Nuvadesk test" calendar and a "Nuvadesk QA" spreadsheet in your account and saves their IDs.
+   6. In Testing mode, refresh tokens expire after 7 days; re-run the script when the checks report `invalid_grant`.
 5. **Telegram:**
    1. Create the bot with @BotFather and set `TELEGRAM_BOT_TOKEN`.
-   2. Add the bot to your alerts group and send any message there.
-   3. Open `https://api.telegram.org/bot<token>/getUpdates` in a browser to read the group's `chat.id`. It's negative for groups. Set `TELEGRAM_CHAT_ID`.
+   2. Add the bot to your alerts group and send `/start` there.
+   3. Run `node scripts/telegram-chat-id.ts`. It reads the group's chat ID from the bot's updates and saves `TELEGRAM_CHAT_ID`.
    4. Put the same two values in `infra/.env` on the server.
 6. Run the checks:
    - `node scripts/check-integrations.ts` (read-only)

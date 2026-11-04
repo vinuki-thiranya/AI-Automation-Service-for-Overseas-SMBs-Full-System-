@@ -1,5 +1,6 @@
 // One-time Google consent for the test calendar + sheet (and later, per client).
-//   node scripts/google-oauth.ts                 → writes GOOGLE_REFRESH_TOKEN into .env.local
+//   node scripts/google-oauth.ts                 → writes GOOGLE_REFRESH_TOKEN into .env.local, and creates the
+//                                                  "Nuvadesk test" calendar + "Nuvadesk QA" sheet if TEST_*_ID are empty
 //   node scripts/google-oauth.ts --print-json    → prints {"refresh_token": "..."} for a client's *.secrets.json
 // Uses a Desktop-app OAuth client (GOOGLE_OAUTH_CLIENT_ID/SECRET in .env.local), the loopback redirect and PKCE.
 // Run it yourself in a terminal: the token is written to the file and never printed (unless --print-json).
@@ -15,6 +16,8 @@ const SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.freebusy",
   "https://www.googleapis.com/auth/spreadsheets",
+  // Lets the dev run create its own throwaway calendar; per-client consent doesn't need it.
+  "https://www.googleapis.com/auth/calendar.app.created",
 ];
 
 loadLocalEnv();
@@ -66,7 +69,7 @@ const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
   headers: { "Content-Type": "application/x-www-form-urlencoded" },
   body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: redirectUri, grant_type: "authorization_code", code_verifier: verifier }),
 });
-const tokens = await tokenRes.json() as { refresh_token?: string; scope?: string; error?: string; error_description?: string };
+const tokens = await tokenRes.json() as { refresh_token?: string; access_token?: string; scope?: string; error?: string; error_description?: string };
 if (!tokenRes.ok || !tokens.refresh_token) {
   console.error(`Token exchange failed: ${tokens.error ?? tokenRes.status} ${tokens.error_description ?? ""}`);
   process.exit(1);
@@ -74,14 +77,35 @@ if (!tokenRes.ok || !tokens.refresh_token) {
 const missing = SCOPES.filter((s) => !tokens.scope?.split(" ").includes(s));
 if (missing.length) console.warn(`Warning: consent did not grant ${missing.join(", ")}`);
 
+const envFile = path.join(REPO_ROOT, ".env.local");
+function saveEnv(key: string, value: string): void {
+  const current = existsSync(envFile) ? readFileSync(envFile, "utf8") : "";
+  const line = `${key}=${value}`;
+  const re = new RegExp(`^${key}=.*$`, "m");
+  writeFileSync(envFile, re.test(current) ? current.replace(re, () => line) : `${current.trimEnd()}
+${line}
+`);
+}
+async function googlePost(url: string, body: unknown): Promise<{ id?: string; spreadsheetId?: string }> {
+  const res = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${tokens.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok) throw new Error(`${url} → ${res.status} ${(await res.text()).slice(0, 200)}`);
+  return await res.json() as { id?: string; spreadsheetId?: string };
+}
+
 if (printJson) {
   console.log(JSON.stringify({ refresh_token: tokens.refresh_token }));
 } else {
-  const file = path.join(REPO_ROOT, ".env.local");
-  const current = existsSync(file) ? readFileSync(file, "utf8") : "";
-  const line = `GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}`;
-  const next = /^GOOGLE_REFRESH_TOKEN=.*$/m.test(current) ? current.replace(/^GOOGLE_REFRESH_TOKEN=.*$/m, line) : `${current.trimEnd()}\n${line}\n`;
-  writeFileSync(file, next);
+  saveEnv("GOOGLE_REFRESH_TOKEN", tokens.refresh_token);
   console.log(`Saved GOOGLE_REFRESH_TOKEN (${mask(tokens.refresh_token)}) to .env.local.`);
+  if (!process.env.TEST_CALENDAR_ID) {
+    const cal = await googlePost("https://www.googleapis.com/calendar/v3/calendars", { summary: "Nuvadesk test", timeZone: "Australia/Sydney" });
+    saveEnv("TEST_CALENDAR_ID", cal.id!);
+    console.log(`Created calendar "Nuvadesk test" and saved TEST_CALENDAR_ID.`);
+  }
+  if (!process.env.TEST_SHEET_ID) {
+    const sheet = await googlePost("https://sheets.googleapis.com/v4/spreadsheets", { properties: { title: "Nuvadesk QA" } });
+    saveEnv("TEST_SHEET_ID", sheet.spreadsheetId!);
+    console.log(`Created spreadsheet "Nuvadesk QA" and saved TEST_SHEET_ID.`);
+  }
 }
 console.log("Note: while the OAuth consent screen is in 'Testing', Google expires refresh tokens after 7 days. Publish it (or re-run this) before go-live.");
