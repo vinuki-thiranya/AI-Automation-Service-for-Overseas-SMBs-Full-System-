@@ -155,7 +155,9 @@ export async function executeTool(env: ToolEnv, name: string, rawInput: unknown)
         const input = parsed.data as z.infer<typeof schemas.check_availability>;
         const res = await findSlots(ctx, thread, {
           serviceId: input.service_id, fromDate: input.from_date, toDate: input.to_date, partOfDay: input.part_of_day,
-          practitioner: input.practitioner, isNewPatient: input.is_new_patient ?? !contact.name,
+          // Unknown is not "new": a returning patient may text from a new number. The new-patient
+          // cutoff is enforced again at booking time, when is_new_patient is required.
+          practitioner: input.practitioner, isNewPatient: input.is_new_patient ?? false,
         });
         if (res.mode === "link") return ok({ mode: "link", booking_link: res.booking_link, instruction: "Share this link so the customer can choose a time." });
         if (res.slots.length === 0) return ok({ slots: [], instruction: "No times in that range. Offer to look at other dates, or to have the team call." });

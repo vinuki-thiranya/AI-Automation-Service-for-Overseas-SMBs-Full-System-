@@ -54,6 +54,22 @@ describe("booking conversation", () => {
     expect(res.turn?.replies[0]).toMatch(/just taken/);
   });
 
+  it("unknown callers see evening times, but a new patient can't book one (4pm cutoff)", async () => {
+    const h = harness();
+    const evening = await h.receive("sms", CUSTOMER, "any evening appointments for a check-up?");
+    const offered = [...h.store.threads.values()][0]!.state.offered_slots!;
+    expect(offered.length).toBeGreaterThan(0);
+    expect(evening.turn?.toolCalls[0]?.name).toBe("check_availability");
+    const { executeTool } = await import("../src/engine/tools.ts");
+    const thread = [...h.store.threads.values()][0]!;
+    const contact = [...h.store.contacts.values()][0]!;
+    const res = await executeTool({ ctx: h.ctx, thread, contact, escalated: false }, "book_appointment",
+      { slot_id: offered[0]!.slot_id, patient_name: "New Person", is_new_patient: true });
+    expect(res.isError).toBe(true);
+    expect(res.content).toMatch(/new patients can't start after 16:00/);
+    expect(h.store.bookings.size).toBe(0);
+  });
+
   it("cancels inside the notice window only after confirmation", async () => {
     const h = harness();
     await h.receive("sms", CUSTOMER, "book a check-up");
@@ -117,6 +133,18 @@ describe("compliance and safety", () => {
     const limited = await h.receive("sms", CUSTOMER, "hours?");
     expect(limited.turn?.handledBy).toBe("rate_limit");
     expect(h.alerts.log.filter((l) => l.includes("Rate limit"))).toHaveLength(1);
+  });
+
+  it("rate-limits before forwarding to staff, so a flood doesn't spam the staff member", async () => {
+    const h = createHarness(demoConfig((c) => { c.assistant.max_messages_per_contact_per_hour = 3; }), { now: TUESDAY_11AM_SYDNEY });
+    await h.receive("sms", CUSTOMER, "talk to a person please");
+    const esc = [...h.store.escalations.values()][0]!;
+    const { claimEscalation } = await import("../src/escalation.ts");
+    await claimEscalation(h.ctx, { id: esc.id }, { id: STAFF, name: "Jess Nguyen" });
+    const before = h.channels.to(STAFF).length;
+    for (let i = 0; i < 6; i++) await h.receive("sms", CUSTOMER, `spam ${i}`);
+    // Limit 3/hour: the hand-over request + 2 forwarded messages; the 4th message onwards is rate-limited.
+    expect(h.channels.to(STAFF).length - before).toBe(2);
   });
 
   it("deduplicates a webhook delivered twice", async () => {

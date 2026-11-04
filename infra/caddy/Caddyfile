@@ -17,7 +17,9 @@
 	}
 }
 
-# n8n: editor UI, REST API and client webhooks (ops.<DOMAIN>/webhook/<client_id>/<channel>)
+# ops.<DOMAIN>:
+#   /in/<client_id>/<channel> and /widget.js → recallo-core (customer channels, lead forms, web chat)
+#   everything else                         → n8n (editor, API, internal webhooks)
 ops.{$DOMAIN} {
 	import security_headers
 	encode zstd gzip
@@ -27,8 +29,15 @@ ops.{$DOMAIN} {
 		max_size 10MB
 	}
 
-	reverse_proxy n8n:5678 {
-		flush_interval -1
+	@core path /in/* /widget.js
+	handle @core {
+		reverse_proxy core:8080
+	}
+
+	handle {
+		reverse_proxy n8n:5678 {
+			flush_interval -1
+		}
 	}
 
 	log {

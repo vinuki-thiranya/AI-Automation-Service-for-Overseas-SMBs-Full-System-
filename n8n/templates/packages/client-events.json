@@ -1,0 +1,94 @@
+{
+  "name": "__CLIENT_ID__ — events",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Client automations hook\nrecallo-core POSTs events here: lead.created, lead.hot, lead.scored, booking.created, booking.cancelled, booking.rescheduled, escalation.opened, escalation.claimed, contact.opted_out, missed_call.texted.\n\nAdd per-client extras after the Switch (Slack post on hot lead, extra CRM fields, Package C flows). Keep the core logic in recallo-core; this is for client-specific glue. Export changes back to n8n/templates when they become reusable.",
+        "height": 260,
+        "width": 420
+      },
+      "id": "3eaf5f4b-8d74-4fb1-a04d-9d4bab3f8000",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-40, -320]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "__CLIENT_ID__/events",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "3eaf5f4b-8d74-4fb1-a04d-9d4bab3f8001",
+      "name": "Core event",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "__WEBHOOK_ID__",
+      "credentials": { "httpHeaderAuth": { "id": "__CORE_JOBS_CREDENTIAL_ID__", "name": "agency/core-jobs" } }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [{ "leftValue": "={{ $json.body.event }}", "rightValue": "lead.hot", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "lead.hot"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [{ "leftValue": "={{ $json.body.event }}", "rightValue": "booking.created", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "booking.created"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "typeValidation": "strict" },
+                "combinator": "and",
+                "conditions": [{ "leftValue": "={{ $json.body.event }}", "rightValue": "escalation.opened", "operator": { "type": "string", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "escalation.opened"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "3eaf5f4b-8d74-4fb1-a04d-9d4bab3f8002",
+      "name": "By event",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {},
+      "id": "3eaf5f4b-8d74-4fb1-a04d-9d4bab3f8003",
+      "name": "No client automation yet",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [520, 0]
+    }
+  ],
+  "connections": {
+    "Core event": { "main": [[{ "node": "By event", "type": "main", "index": 0 }]] },
+    "By event": {
+      "main": [
+        [{ "node": "No client automation yet", "type": "main", "index": 0 }],
+        [{ "node": "No client automation yet", "type": "main", "index": 0 }],
+        [{ "node": "No client automation yet", "type": "main", "index": 0 }],
+        [{ "node": "No client automation yet", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1", "errorWorkflow": "__ERROR_WORKFLOW_ID__", "saveDataSuccessExecution": "none" }
+}

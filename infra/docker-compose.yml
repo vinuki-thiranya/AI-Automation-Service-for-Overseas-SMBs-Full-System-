@@ -80,6 +80,43 @@ services:
     networks: [internal]
     logging: *default-logging
 
+  core:
+    build:
+      context: ..
+      dockerfile: core/Dockerfile
+    image: recallo/core:2
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      TZ: ${TZ:-UTC}
+      PUBLIC_BASE_URL: https://ops.${DOMAIN}
+      CORE_SECRET: ${CORE_SECRET:?set CORE_SECRET in infra/.env}
+      CORE_JOB_TOKEN: ${CORE_JOB_TOKEN:?set CORE_JOB_TOKEN in infra/.env}
+      META_APP_SECRET: ${META_APP_SECRET:-}
+      WHATSAPP_GRAPH_VERSION: ${WHATSAPP_GRAPH_VERSION:-v26.0}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      SUPABASE_AU_URL: ${SUPABASE_AU_URL:-}
+      SUPABASE_AU_SERVICE_ROLE_KEY: ${SUPABASE_AU_SERVICE_ROLE_KEY:-}
+      SUPABASE_EU_URL: ${SUPABASE_EU_URL:-}
+      SUPABASE_EU_SERVICE_ROLE_KEY: ${SUPABASE_EU_SERVICE_ROLE_KEY:-}
+      SUPABASE_US_URL: ${SUPABASE_US_URL:-}
+      SUPABASE_US_SERVICE_ROLE_KEY: ${SUPABASE_US_SERVICE_ROLE_KEY:-}
+      N8N_EVENTS_BASE_URL: http://n8n:5678/webhook
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      OPS_EMAIL: ${ACME_EMAIL}
+      LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:8080/healthz',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    mem_limit: 512m
+    networks: [internal]
+    logging: *default-logging
+
   caddy:
     build:
       context: ./caddy
@@ -87,6 +124,7 @@ services:
     restart: unless-stopped
     depends_on:
       - n8n
+      - core
       - uptime-kuma
     ports:
       - "80:80"
@@ -131,6 +169,7 @@ services:
       SUPABASE_DB_URL: ${SUPABASE_DB_URL:-}
       BACKUP_PREFIX: ${BACKUP_PREFIX:-recallo}
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_PUSH_URL: ${BACKUP_PUSH_URL:-}
       # rclone reads its remote "b2" from these variables — no config file on disk.
       RCLONE_CONFIG_B2_TYPE: b2
       RCLONE_CONFIG_B2_ACCOUNT: ${B2_KEY_ID:?set B2_KEY_ID in infra/.env}

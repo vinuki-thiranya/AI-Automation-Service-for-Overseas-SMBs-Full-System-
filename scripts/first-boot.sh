@@ -12,11 +12,14 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 chmod 600 "$ENV_FILE"
 
-# Generate machine secrets that are still placeholders.
-for var in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY; do
+# Generate machine secrets that are still placeholders (or missing, on a server set up before Phase 2).
+for var in POSTGRES_PASSWORD N8N_ENCRYPTION_KEY CORE_SECRET CORE_JOB_TOKEN; do
   if grep -qE "^${var}=CHANGE_ME$" "$ENV_FILE"; then
     sed -i "s|^${var}=CHANGE_ME$|${var}=$(openssl rand -hex 24)|" "$ENV_FILE"
     log "generated $var"
+  elif ! grep -qE "^${var}=" "$ENV_FILE"; then
+    echo "${var}=$(openssl rand -hex 24)" >> "$ENV_FILE"
+    log "added $var"
   fi
 done
 

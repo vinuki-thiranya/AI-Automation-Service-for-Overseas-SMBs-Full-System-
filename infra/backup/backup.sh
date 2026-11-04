@@ -40,3 +40,8 @@ rclone delete --min-age "${BACKUP_RETENTION_DAYS}d" "$remote"
 
 rm -f "$dir"/*
 log "backup complete"
+
+# Uptime Kuma push monitor: alerts if no successful backup checks in for 26 hours.
+if [[ -n "${BACKUP_PUSH_URL:-}" ]]; then
+  curl -fsS -m 10 -o /dev/null "${BACKUP_PUSH_URL}?status=up&msg=OK" || log "push monitor ping failed"
+fi

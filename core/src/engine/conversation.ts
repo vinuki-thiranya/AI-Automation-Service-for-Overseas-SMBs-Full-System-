@@ -1,5 +1,5 @@
 // One customer turn, end to end (spec §4.2):
-// STOP/START → opted-out → staff owns thread → rate limit → lead-flow answer → degraded / spend cap →
+// STOP/START → opted-out → rate limit → staff owns thread → lead-flow answer → degraded / spend cap →
 // guardrail → retrieval → model with tools (primary, then fallback) → price check → send → record.
 import { bookingLabel } from "../booking/service.ts";
 import { isStartMessage, isStopMessage, startReply, stopReply } from "../compliance.ts";
@@ -116,16 +116,7 @@ export async function handleCustomerMessage(ctx: Ctx, thread: ThreadRow, contact
 
   await stopNurtureOnReply(ctx, contact);
 
-  // 2. A person owns this thread: pass the message to them; the AI stays quiet.
-  if (thread.ai_paused_until && new Date(thread.ai_paused_until) > ctx.now()) {
-    const esc = await ctx.store.findOpenEscalationForThread(thread.id);
-    if (esc) {
-      await forwardToClaimer(ctx, esc, contact, text);
-      return { ...result, handledBy: "staff", escalated: true };
-    }
-  }
-
-  // 3. Rate limit per contact.
+  // 2. Rate limit per contact (before the staff hand-off, so a flood doesn't spam the staff member either).
   const limit = cfg.assistant.max_messages_per_contact_per_hour ?? 30;
   const recent = await ctx.store.countInbound(ctx.client.id, contact.id, new Date(ctx.now().getTime() - 3600_000).toISOString());
   if (recent > limit) {
@@ -137,6 +128,15 @@ export async function handleCustomerMessage(ctx: Ctx, thread: ThreadRow, contact
       await ctx.deps.alerts.notify(`ratelimit:${ctx.client.slug}:${contact.id}`, `Rate limit hit for ${ctx.client.slug} contact ${contact.id}`, 60);
     }
     return { ...result, handledBy: "rate_limit" };
+  }
+
+  // 3. A person owns this thread: pass the message to them; the AI stays quiet.
+  if (thread.ai_paused_until && new Date(thread.ai_paused_until) > ctx.now()) {
+    const esc = await ctx.store.findOpenEscalationForThread(thread.id);
+    if (esc) {
+      await forwardToClaimer(ctx, esc, contact, text);
+      return { ...result, handledBy: "staff", escalated: true };
+    }
   }
 
   // 4. Lead qualification answers.

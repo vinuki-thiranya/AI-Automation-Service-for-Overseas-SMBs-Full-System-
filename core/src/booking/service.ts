@@ -96,6 +96,10 @@ export async function bookOffered(ctx: Ctx, thread: ThreadRow, contact: ContactR
   if (!service) throw new BookingError("unknown_service", "service no longer exists");
   const email = patient.email ?? contact.email;
   if (adapter.requiresEmail && !email) throw new BookingError("needs_email", "this booking system needs the patient's email address; ask for it");
+  const cutoff = ctx.client.config.booking?.new_patient_cutoff;
+  if (patient.isNew && cutoff && DateTime.fromISO(slot.start, { setZone: true }).setZone(ctx.client.config.timezone).toFormat("HH:mm") > cutoff) {
+    throw new BookingError("unknown_slot", `new patients can't start after ${cutoff}; call check_availability with is_new_patient=true and offer an earlier time`);
+  }
 
   // Re-check against the provider immediately before writing (someone may have taken it).
   const candidate = candidateFrom(slot);

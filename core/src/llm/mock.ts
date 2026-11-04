@@ -117,7 +117,7 @@ export class MockConversation implements ConversationModel {
     // 2. Cancel / reschedule an existing booking.
     if (/cancel/.test(t) && ctx.upcomingBookings.length) {
       const b = ctx.upcomingBookings[0]!;
-      const confirmLate = /yes|confirm|that'?s fine|ok/.test(t);
+      const confirmLate = /\b(yes|confirm|that'?s fine|ok|okay)\b/.test(t);
       const res = await call("cancel", { booking_id: b.booking_id, confirm_late_cancellation: confirmLate });
       if (res.json.requires_confirmation) return done(String(res.json.message ?? "That's inside our cancellation window. Do you still want to cancel?"));
       if (res.isError) return done("I couldn't cancel that booking. I'll ask the team to help.");
@@ -143,7 +143,21 @@ export class MockConversation implements ConversationModel {
       return done("I can't give medical advice over chat, but a dentist can check it properly. Would you like me to find you an appointment?");
     }
 
-    // 5. Booking intent.
+    // 5. Complaints go to a person; greetings get a greeting.
+    if (/(unhappy|not happy|complain|refund|disappointed|terrible (service|experience)|rude)/.test(t)) {
+      await call("escalate_to_human", { reason: "complaint", summary: `Complaint: ${last.slice(0, 200)}` });
+      return done("I'm sorry to hear that. I've passed this to the team and someone will get back to you shortly.");
+    }
+    if (/^(hi|hello|hey|good (morning|afternoon|evening))\b[\s!.,]*(there)?[\s!.,?]*$/.test(t)) return done("Hi! How can I help you today?");
+
+    // 6. Prices (before booking intent: "how much is a check-up?" is a price question).
+    if (/(price|cost|how much|fee|charge)/.test(t)) {
+      const svc = ctx.services.find((s) => guessService(t, ctx) === s.id);
+      if (svc) return done(svc.price ? `A ${svc.name.toLowerCase()} is ${svc.price}.` : `For ${svc.name.toLowerCase()}, the team will confirm the price at your visit.`);
+      return done(`Here are our main prices:\n${ctx.services.filter((s) => s.price).map((s) => `- ${s.name}: ${s.price}`).join("\n")}`);
+    }
+
+    // 7. Booking intent.
     if (/(book|appointment|availab|come in|get in|see (a |the )?dentist|check-?up|clean|consult|\bslots?\b|openings)/.test(t)) {
       if (ctx.bookingMode === "link") {
         const res = await call("check_availability", { service_id: ctx.services[0]?.id });
@@ -157,14 +171,7 @@ export class MockConversation implements ConversationModel {
       return done(`Here are the next available times:\n${listSlots(slots)}\nWhich would you like?`);
     }
 
-    // 6. Prices.
-    if (/(price|cost|how much|fee|charge)/.test(t)) {
-      const svc = ctx.services.find((s) => guessService(t, ctx) === s.id);
-      if (svc) return done(svc.price ? `A ${svc.name.toLowerCase()} is ${svc.price}.` : `For ${svc.name.toLowerCase()}, the team will confirm the price at your visit.`);
-      return done(`Here are our main prices:\n${ctx.services.filter((s) => s.price).map((s) => `- ${s.name}: ${s.price}`).join("\n")}`);
-    }
-
-    // 7. Hours, location, parking, forms.
+    // 8. Hours, location, parking, forms.
     if (/(open|hours|close|closing|weekend|saturday|sunday)/.test(t)) return done(`Our hours: ${ctx.hoursSummary}.`);
     if (/(park)/.test(t) && ctx.parking) return done(ctx.parking);
     if (/(where are you|address|located|location|directions)/.test(t)) {
@@ -178,13 +185,13 @@ export class MockConversation implements ConversationModel {
       return done(`I've sent you the ${doc.name.toLowerCase()}.`);
     }
 
-    // 8. Interest without a booking request → lead qualification.
+    // 9. Interest without a booking request → lead qualification.
     if (/(interested in|thinking about|considering|enquir|info(rmation)? (on|about))/.test(t)) {
       const res = await call("create_lead", { interest: last.slice(0, 200) });
       if (!res.isError && res.json.first_question) return done(String(res.json.first_question));
     }
 
-    // 9. Grounded FAQ answer, else hand over.
+    // 10. Grounded FAQ answer, else hand over.
     const top = ctx.faq[0];
     if (top && top.similarity > 0.25) {   // bag-of-words cosine: two shared keywords ≈ 0.28
       const answer = top.content.split("\n").filter((l) => l && !l.startsWith("#")).join(" ");

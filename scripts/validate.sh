@@ -28,7 +28,7 @@ for name, svc in doc["services"].items():
         s = str(v)
         if any(w in k for w in ("PASSWORD", "KEY", "TOKEN", "SECRET")) and s and not s.startswith("${"):
             errors.append(f"{name}: {k} has an inline value; use ${{VAR}} from .env")
-for svc in ("postgres", "n8n"):
+for svc in ("postgres", "n8n", "core"):
     if "healthcheck" not in doc["services"][svc]:
         errors.append(f"{svc}: missing healthcheck")
 if errors:
@@ -40,7 +40,7 @@ log "JSON files parse"
 "$PY" - <<'PY'
 import json, pathlib, sys
 bad = 0
-files = [p for p in pathlib.Path(".").rglob("*.json") if "node_modules" not in p.parts]
+files = [p for p in pathlib.Path(".").rglob("*.json") if "node_modules" not in p.parts and not p.name.endswith(".secrets.json") and not p.name.startswith("tsconfig")]  # tsconfig is JSONC
 for p in files:
     try:
         json.loads(p.read_text(encoding="utf-8"))
@@ -52,13 +52,24 @@ PY
 
 log "client configs match config/client.schema.json"
 for f in config/clients/*.json; do
+  [[ "$f" == *.secrets.json ]] && continue
   npx -y -p ajv-cli@5.0.0 -p ajv-formats@3.0.1 ajv validate --spec=draft2020 -c ajv-formats \
     --strict=false --errors=line -s config/client.schema.json -d "$f"
 done
 
 log "shell syntax"
 for f in scripts/*.sh infra/backup/*.sh; do bash -n "$f"; done
+node --check webchat/widget.js
 echo "ok"
+
+if [[ -d node_modules ]]; then
+  log "recallo-core: typecheck, unit tests, 50-conversation QA (mock models)"
+  npm run --silent typecheck
+  npm test --silent
+  npm run --silent qa
+else
+  warn "node_modules missing: run 'npm ci' to include core typecheck, tests and QA"
+fi
 
 log "secret scan of tracked files"
 if git grep -nIE '(sk-ant-[A-Za-z0-9_-]{10,}|sk-(proj-)?[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,})' -- . ':!scripts/validate.sh'; then
