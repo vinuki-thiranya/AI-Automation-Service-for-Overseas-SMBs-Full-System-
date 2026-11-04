@@ -29,7 +29,13 @@ jobs:
           python-version: "3.12"
       - run: pip install pyyaml==6.0.3
       - run: npm ci
-      - run: bash scripts/validate.sh
+      - name: validate.sh
+        run: |
+          set -o pipefail
+          bash scripts/validate.sh 2>&1 | tee /tmp/validate.log
+      - name: Report failure detail
+        if: failure()
+        run: tail -n 25 /tmp/validate.log | sed 's/\x1b\[[0-9;]*m//g' | while IFS= read -r line; do [ -n "$line" ] && echo "::error title=validate.sh::${line:0:400}"; done; true
 
   docker:
     name: Docker stack builds, starts and routes
@@ -106,16 +112,23 @@ jobs:
         with:
           version: 2.121.0
       - name: Start Supabase (db, auth, api only) and apply migrations
-        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+        run: |
+          set -o pipefail
+          supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor 2>&1 | tee /tmp/supabase.log
       - name: Migrations re-apply cleanly from scratch
-        run: supabase db reset
+        run: |
+          set -o pipefail
+          supabase db reset 2>&1 | tee -a /tmp/supabase.log
       - run: npm ci
       - name: Integration tests against the local stack
         working-directory: core
         run: |
           eval "$(supabase status -o env | sed -n -e 's/^API_URL=/export SUPABASE_TEST_URL=/p' -e 's/^SERVICE_ROLE_KEY=/export SUPABASE_TEST_SERVICE_ROLE_KEY=/p' -e 's/^ANON_KEY=/export SUPABASE_TEST_ANON_KEY=/p')"
           test -n "$SUPABASE_TEST_URL" && test -n "$SUPABASE_TEST_SERVICE_ROLE_KEY" && test -n "$SUPABASE_TEST_ANON_KEY"
-          npx vitest run test/integration --reporter=verbose
-      - name: Database logs on failure
+          set -o pipefail
+          npx vitest run test/integration --reporter=verbose 2>&1 | tee -a /tmp/supabase.log
+      - name: Report failure detail
         if: failure()
-        run: docker logs supabase_db_nuvadesk --tail 80 2>&1 | tail -n 80 || true
+        run: |
+          { tail -n 30 /tmp/supabase.log 2>/dev/null; docker logs supabase_db_nuvadesk --tail 15 2>&1; } | sed 's/\x1b\[[0-9;]*m//g' \
+            | while IFS= read -r line; do [ -n "$line" ] && echo "::error title=supabase::${line:0:400}"; done; true

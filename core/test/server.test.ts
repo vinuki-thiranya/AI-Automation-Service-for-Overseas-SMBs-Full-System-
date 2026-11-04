@@ -21,7 +21,14 @@ const waBody = (text: string, id = "wamid.A") => JSON.stringify({
   } }] }],
 });
 const metaSig = (body: string) => `sha256=${createHmac("sha256", TEST_ENV.metaAppSecret).update(body).digest("hex")}`;
-const settle = () => new Promise((r) => setTimeout(r, 50));
+/** Webhooks are acknowledged first and processed in the background: poll until the reply was sent. */
+async function waitFor(check: () => boolean, timeoutMs = 3000): Promise<void> {
+  const start = Date.now();
+  while (!check()) {
+    if (Date.now() - start > timeoutMs) throw new Error("timed out waiting for background processing");
+    await new Promise((r) => setTimeout(r, 20));
+  }
+}
 
 describe("WhatsApp webhook", () => {
   it("answers Meta's verification challenge only with the client's verify token", async () => {
@@ -41,7 +48,7 @@ describe("WhatsApp webhook", () => {
     expect(bad.statusCode).toBe(401);
     const good = await app.inject({ method: "POST", url: "/in/demo-clinic/whatsapp", payload: body, headers: { "content-type": "application/json", "x-hub-signature-256": metaSig(body) } });
     expect(good.statusCode).toBe(200);
-    await settle();
+    await waitFor(() => h.channels.to("+61411111111").length > 0);
     const sent = h.channels.to("+61411111111");
     expect(sent[0]?.text).toMatch(/Mon–Tue 8am–6pm/);
     expect([...h.store.contacts.values()][0]).toMatchObject({ phone: "+61411111111", name: "Alex" });
@@ -66,7 +73,7 @@ describe("Twilio webhooks", () => {
     });
     expect(res.statusCode).toBe(200);
     expect(res.body).toBe("<Response/>");
-    await settle();
+    await waitFor(() => h.channels.to("+61411111111").length > 0);
     expect(h.channels.to("+61411111111").at(-1)?.text).toMatch(/Wilson car park/);
   });
 

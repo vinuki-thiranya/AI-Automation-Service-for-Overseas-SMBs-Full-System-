@@ -31,3 +31,6 @@ Thumbs.db
 qa/reports/
 # CI-only dummy values (no secrets), needed by .github/workflows/ci.yml
 !infra/ci/.env.ci
+
+# Python bytecode (e.g. from running .claude/skills/*/scripts)
+__pycache__/
