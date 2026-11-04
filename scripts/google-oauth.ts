@@ -44,11 +44,12 @@ const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchPar
 })}`;
 
 console.log("Opening Google consent in your browser. If it doesn't open, visit:\n\n" + authUrl + "\n");
-const opener = process.platform === "win32" ? ["cmd", ["/c", "start", "", authUrl]] : process.platform === "darwin" ? ["open", [authUrl]] : ["xdg-open", [authUrl]];
+// Not `cmd /c start`: cmd splits the URL at its first "&".
+const opener = process.platform === "win32" ? ["rundll32", ["url.dll,FileProtocolHandler", authUrl]] : process.platform === "darwin" ? ["open", [authUrl]] : ["xdg-open", [authUrl]];
 execFile(opener[0] as string, opener[1] as string[], () => {});
 
 const code = await new Promise<string>((resolve, reject) => {
-  const timer = setTimeout(() => reject(new Error("timed out after 5 minutes")), 5 * 60_000);
+  const timer = setTimeout(() => reject(new Error("timed out after 10 minutes")), 10 * 60_000);
   server.on("request", (req, res) => {
     const url = new URL(req.url ?? "/", redirectUri);
     const got = url.searchParams.get("code");
