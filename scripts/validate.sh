@@ -4,7 +4,7 @@
 #   scripts/validate.sh
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
-require_cmd npx git
+require_cmd node git
 PY=""
 for c in python3 python; do   # on Windows, python3 may be a Store stub that doesn't run
   if "$c" -c 'import yaml' >/dev/null 2>&1; then PY=$c; break; fi
@@ -51,11 +51,7 @@ sys.exit(1 if bad else 0)
 PY
 
 log "client configs match config/client.schema.json"
-for f in config/clients/*.json; do
-  [[ "$f" == *.secrets.json ]] && continue
-  npx -y -p ajv-cli@5.0.0 -p ajv-formats@3.0.1 ajv validate --spec=draft2020 -c ajv-formats \
-    --strict=false --errors=line -s config/client.schema.json -d "$f"
-done
+node scripts/validate-configs.ts
 
 log "shell syntax"
 for f in scripts/*.sh infra/backup/*.sh; do bash -n "$f"; done

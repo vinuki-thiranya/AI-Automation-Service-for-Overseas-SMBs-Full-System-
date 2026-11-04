@@ -224,3 +224,34 @@ Record the date and total time here:
 - [ ] `node scripts/new-client.ts config/clients/demo-clinic.json --secrets … --apply`, then wire the printed URLs.
 - [ ] Text the demo number: ask the hours, book a check-up, ask for a person, then reply from a staff phone.
 - [ ] Record the two demo videos (spec §9, weeks 1–2).
+
+## 12. Local credentials, live checks and live QA (your laptop)
+
+Credentials for testing live in `.env.local` at the repo root. It is gitignored, so never commit it or paste its values anywhere. The scripts below load it automatically, and values already in your shell take precedence.
+
+1. `cp .env.local.example .env.local` and open it in VS Code.
+2. **Anthropic:** in the Console, create a workspace "nuvadesk-testing" with a monthly spend limit (e.g. USD 20). Create a key there and set `ANTHROPIC_API_KEY`.
+3. **OpenAI:** create a project "nuvadesk-testing" with a monthly budget. Create a project key and set `OPENAI_API_KEY`.
+4. **Google:**
+   1. In Google Cloud, create a project.
+   2. Enable the **Google Calendar API** and **Google Sheets API**.
+   3. Configure the OAuth consent screen (External, Testing, add your Google account as a test user).
+   4. Create an OAuth client of type **Desktop app**. Set `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`.
+   5. Create a throwaway calendar and set `TEST_CALENDAR_ID` (Calendar settings → Integrate calendar).
+   6. Create a blank spreadsheet and set `TEST_SHEET_ID` (the long ID in its URL).
+   7. Run `node scripts/google-oauth.ts` in your own terminal. It opens Google consent and writes `GOOGLE_REFRESH_TOKEN` into `.env.local` without printing it.
+   8. In Testing mode, refresh tokens expire after 7 days; re-run the script when the checks report `invalid_grant`.
+5. **Telegram:**
+   1. Create the bot with @BotFather and set `TELEGRAM_BOT_TOKEN`.
+   2. Add the bot to your alerts group and send any message there.
+   3. Open `https://api.telegram.org/bot<token>/getUpdates` in a browser to read the group's `chat.id`. It's negative for groups. Set `TELEGRAM_CHAT_ID`.
+   4. Put the same two values in `infra/.env` on the server.
+6. Run the checks:
+   - `node scripts/check-integrations.ts` (read-only)
+   - then `node scripts/check-integrations.ts --write` (books and deletes a test event, upserts a row in the sheet's `QA` tab, sends one Telegram message)
+7. Run live QA:
+   - `npm run qa -- --live`: Claude Sonnet 5.5, must reach ≥ 48/50.
+   - `npm run qa -- --live --model openai:gpt-6-luna`: the fallback evaluation.
+   - Each run costs roughly USD 1–3 and writes a report to `qa/reports/` (gitignored).
+
+Twilio, WhatsApp, Resend and Cliniko checks are already in the script. They report `skip` until you add their keys to `.env.local`.
