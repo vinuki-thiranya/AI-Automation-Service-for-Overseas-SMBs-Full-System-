@@ -1,1 +1,140 @@
 @import "tailwindcss";
+
+/* Tokens from design-system/nuvadesk/MASTER.md. Day palette by default; "after hours" (dark) follows the
+   system unless the user picked a theme (data-theme on <html>, set from a cookie on the server). */
+:root {
+  --paper: #f6f7f4;
+  --surface: #ffffff;
+  --ink: #18231f;
+  --ink-muted: #55635d;
+  --rule: #dce3de;
+  --eucalyptus: #2f6b5a;
+  --on-eucalyptus: #ffffff;
+  --gumleaf: #e2eee8;
+  --dusk: #33407a;
+  --signal: #9a5b00;
+  --signal-wash: #fbf1e1;
+  --danger: #b42318;
+  /* Chart series, validated with the dataviz checks (contrast, chroma, CVD) against --surface */
+  --series-business: #007c60;
+  --series-after: #454ead;
+  --grade-hot: #00503c;
+  --grade-warm: #008668;
+  --grade-cold: #66b79c;
+  color-scheme: light;
+}
+
+/* The after-hours values appear twice: once for the system preference, once for an explicit choice
+   (and for .after-hours panels, which are always dark). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131b2e;
+    --surface: #1a2440;
+    --ink: #e9eef5;
+    --ink-muted: #a9b4c6;
+    --rule: #2b3757;
+    --eucalyptus: #7fc4ae;
+    --on-eucalyptus: #0f1a17;
+    --gumleaf: #20393a;
+    --dusk: #aeb8f2;
+    --signal: #f2b661;
+    --signal-wash: #33301f;
+    --danger: #ff8a80;
+    --series-business: #33a182;
+    --series-after: #7173d7;
+    --grade-hot: #9be3c9;
+    --grade-warm: #42ae8e;
+    --grade-cold: #1b735b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"],
+.after-hours {
+  --paper: #131b2e;
+  --surface: #1a2440;
+  --ink: #e9eef5;
+  --ink-muted: #a9b4c6;
+  --rule: #2b3757;
+  --eucalyptus: #7fc4ae;
+  --on-eucalyptus: #0f1a17;
+  --gumleaf: #20393a;
+  --dusk: #aeb8f2;
+  --signal: #f2b661;
+  --signal-wash: #33301f;
+  --danger: #ff8a80;
+  --series-business: #33a182;
+  --series-after: #7173d7;
+  --grade-hot: #9be3c9;
+  --grade-warm: #42ae8e;
+  --grade-cold: #1b735b;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-rule: var(--rule);
+  --color-eucalyptus: var(--eucalyptus);
+  --color-on-eucalyptus: var(--on-eucalyptus);
+  --color-gumleaf: var(--gumleaf);
+  --color-dusk: var(--dusk);
+  --color-signal: var(--signal);
+  --color-signal-wash: var(--signal-wash);
+  --color-danger: var(--danger);
+  --color-series-business: var(--series-business);
+  --color-series-after: var(--series-after);
+  --color-grade-hot: var(--grade-hot);
+  --color-grade-warm: var(--grade-warm);
+  --color-grade-cold: var(--grade-cold);
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+
+  /* 1.25 scale from 16px (MASTER.md) */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-2xl: 1.9375rem;
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--eucalyptus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Search highlights arrive as plain text between U+0002 and U+0003 and are rendered as <mark>. */
+mark {
+  background: var(--gumleaf);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

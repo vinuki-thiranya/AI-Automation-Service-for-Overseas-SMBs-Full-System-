@@ -29,9 +29,18 @@ A eucalyptus and paper day palette. Dark mode is "after hours" dusk, not black.
 | `signal` | `#9A5B00` | `#F2B661` | Needs attention: open escalations, pending approvals (text-safe amber) |
 | `danger` | `#B42318` | `#FF8A80` | Failures and rejections only |
 
+**Chart series.** The UI tokens above are too low in chroma for data marks: the dataviz validator failed
+them on chroma and, in dark mode, on normal-vision separation. Charts use these validated companions instead:
+
+| Token | Light | Dark | Validation |
+|---|---|---|---|
+| `series-business` | `#007C60` | `#33A182` | Categorical pair: band, chroma ≥ 0.10, CVD ΔE 17.9 / 17.0, normal ΔE 20.9 / 21.6, ≥ 3:1 vs surface. All pass. |
+| `series-after` | `#454EAD` | `#7173D7` | (as above) |
+| `grade-hot` / `grade-warm` / `grade-cold` | `#00503C` / `#008668` / `#66B79C` | `#9BE3C9` / `#42AE8E` / `#1B735B` | Ordinal ramp, one hue (eucalyptus), monotone, light end ≥ 2:1. Pass. |
+
 **Rules**
 - **No raw hex in components.** Use the CSS variables (`--paper`, `--ink`, …) mapped to Tailwind theme colours.
-- **The two series:** eucalyptus means business hours and dusk means after hours. That's the one colour story the charts tell. Lead grades use eucalyptus (hot), dusk (warm) and `ink-muted` (cold), always labelled and never told by colour alone.
+- **The two series:** eucalyptus (`series-business`) means business hours and dusk (`series-after`) means after hours. That's the one colour story the charts tell. Lead grades are ordinal, so they use one hue at three strengths (`grade-hot` → `grade-cold`), always labelled and never told by colour alone.
 - **Signal amber is rationed.** It appears only where a person has to act.
 
 ## Type
