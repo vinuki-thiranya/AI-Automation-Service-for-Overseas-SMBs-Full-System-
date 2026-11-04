@@ -1,0 +1,350 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://recallo.ai/schemas/client.schema.json",
+  "title": "Recallo client configuration",
+  "description": "Everything that differs between clients. Secrets are never stored here: fields named `credential` hold a reference '<client_id>/<name>' to an n8n credential or Supabase Vault secret.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "client_id", "name", "vertical", "region", "timezone", "locale", "packages", "care_plan", "business", "channels", "assistant", "escalation", "reporting", "compliance"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schema_version": { "const": 1 },
+    "client_id": { "$ref": "#/$defs/slug", "description": "Stable slug; used in webhook paths, credential names and Supabase rows." },
+    "name": { "type": "string", "minLength": 2 },
+    "vertical": { "enum": ["dental", "physio", "allied_health", "real_estate", "home_services", "law", "ecommerce", "recruitment"] },
+    "region": { "enum": ["au", "eu", "us"], "description": "Selects the Supabase project (data residency)." },
+    "timezone": { "type": "string", "pattern": "^[A-Za-z]+/[A-Za-z_]+(/[A-Za-z_]+)?$", "examples": ["Australia/Sydney"] },
+    "locale": { "enum": ["en-AU", "en-GB", "en-US"] },
+    "status": { "enum": ["demo", "staging", "uat", "live", "paused", "offboarded"], "default": "staging" },
+    "packages": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": { "enum": ["A", "B", "C", "D", "voice"] }
+    },
+    "care_plan": { "enum": ["keep_alive", "grow", "partner", "none"] },
+
+    "business": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["legal_name", "address", "phone", "hours", "services"],
+      "properties": {
+        "legal_name": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "$ref": "#/$defs/e164" },
+        "email": { "type": "string", "format": "email" },
+        "website": { "type": "string", "format": "uri" },
+        "google_review_url": { "type": "string", "format": "uri" },
+        "parking": { "type": "string" },
+        "hours": {
+          "type": "object",
+          "description": "Opening hours per weekday; omit or use [] for closed.",
+          "additionalProperties": false,
+          "properties": {
+            "mon": { "$ref": "#/$defs/day_hours" }, "tue": { "$ref": "#/$defs/day_hours" },
+            "wed": { "$ref": "#/$defs/day_hours" }, "thu": { "$ref": "#/$defs/day_hours" },
+            "fri": { "$ref": "#/$defs/day_hours" }, "sat": { "$ref": "#/$defs/day_hours" },
+            "sun": { "$ref": "#/$defs/day_hours" }
+          }
+        },
+        "holidays": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["date"],
+            "properties": { "date": { "type": "string", "format": "date" }, "name": { "type": "string" } }
+          }
+        },
+        "holiday_calendar": { "type": "string", "description": "Optional calendar ID whose all-day events count as closures." },
+        "services": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "name", "duration_minutes"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "name": { "type": "string" },
+              "duration_minutes": { "type": "integer", "minimum": 5, "maximum": 480 },
+              "price": { "$ref": "#/$defs/money" },
+              "price_note": { "type": "string", "description": "e.g. 'from', 'gap-free with selected health funds'" },
+              "new_patients": { "type": "boolean", "default": true },
+              "bookable_online": { "type": "boolean", "default": true }
+            }
+          }
+        },
+        "policies": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "cancellation": { "type": "string" },
+            "cancellation_notice_hours": { "type": "integer", "minimum": 0 },
+            "payment": { "type": "string" },
+            "insurance": { "type": "string" }
+          }
+        },
+        "staff": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["name", "role"],
+            "properties": { "name": { "type": "string" }, "role": { "type": "string" }, "bio": { "type": "string" } }
+          }
+        },
+        "faq_sources": {
+          "type": "array",
+          "description": "Documents chunked and embedded into faq_chunks.",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["type", "ref"],
+            "properties": { "type": { "enum": ["url", "file", "inline"] }, "ref": { "type": "string" } }
+          }
+        }
+      }
+    },
+
+    "channels": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "whatsapp": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "phone_number_id": { "type": "string" },
+            "display_number": { "$ref": "#/$defs/e164" },
+            "credential": { "$ref": "#/$defs/credential_ref" },
+            "templates": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Logical name → approved Meta template name." }
+          }
+        },
+        "sms": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "from_number": { "$ref": "#/$defs/e164" },
+            "credential": { "$ref": "#/$defs/credential_ref" }
+          }
+        },
+        "webchat": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "allowed_origins": { "type": "array", "items": { "type": "string", "format": "uri" } },
+            "accent_color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+          }
+        },
+        "missed_call": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "provider": { "enum": ["twilio", "ringcentral", "aircall", "3cx"] },
+            "text_back_channel": { "enum": ["sms", "whatsapp"], "default": "sms" },
+            "text_back_delay_seconds": { "type": "integer", "minimum": 0, "maximum": 30, "default": 10 }
+          }
+        },
+        "email": {
+          "type": "object", "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "from_address": { "type": "string", "format": "email" },
+            "credential": { "$ref": "#/$defs/credential_ref" }
+          }
+        }
+      }
+    },
+
+    "assistant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["persona_name", "tone", "disclosure_text", "languages", "llm"],
+      "properties": {
+        "persona_name": { "type": "string" },
+        "tone": { "type": "string", "description": "Short style guide, e.g. 'warm, brief, Australian English, no emojis'." },
+        "disclosure_text": { "type": "string", "description": "Sent in the first message of every thread (AI disclosure)." },
+        "languages": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z]{2}$" } },
+        "forbidden_topics": { "type": "array", "items": { "type": "string" } },
+        "extra_rules": { "type": "array", "items": { "type": "string" } },
+        "after_hours": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "greeting": { "type": "string" },
+            "emergency_text": { "type": "string" },
+            "allow_booking": { "type": "boolean", "default": true }
+          }
+        },
+        "confidence_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.7 },
+        "max_messages_per_contact_per_hour": { "type": "integer", "minimum": 1, "default": 30 },
+        "llm": {
+          "type": "object", "additionalProperties": false,
+          "required": ["primary", "classifier", "embeddings", "monthly_cap_usd"],
+          "properties": {
+            "primary": { "$ref": "#/$defs/model_ref" },
+            "classifier": { "$ref": "#/$defs/model_ref" },
+            "fallback": { "$ref": "#/$defs/model_ref" },
+            "embeddings": { "$ref": "#/$defs/model_ref" },
+            "monthly_cap_usd": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+
+    "booking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter"],
+      "properties": {
+        "adapter": { "enum": ["google_calendar", "microsoft_bookings", "calendly", "cliniko", "jane", "acuity", "simplepractice", "jobber", "gohighlevel"] },
+        "credential": { "$ref": "#/$defs/credential_ref" },
+        "calendars": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id"],
+            "properties": {
+              "id": { "type": "string" },
+              "practitioner": { "type": "string" },
+              "services": { "type": "array", "items": { "$ref": "#/$defs/slug" } }
+            }
+          }
+        },
+        "buffer_minutes": { "type": "integer", "minimum": 0, "default": 15 },
+        "min_notice_minutes": { "type": "integer", "minimum": 0, "default": 120 },
+        "max_days_ahead": { "type": "integer", "minimum": 1, "default": 60 },
+        "new_patient_cutoff": { "$ref": "#/$defs/hhmm", "description": "No new-patient appointments starting after this local time." },
+        "reminders_hours_before": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "default": [24, 2] },
+        "no_show_followup_minutes": { "type": "integer", "minimum": 0, "default": 30 },
+        "send_ics": { "type": "boolean", "default": true }
+      }
+    },
+
+    "lead_qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["questions", "thresholds"],
+      "properties": {
+        "sources": { "type": "array", "items": { "enum": ["web_form", "facebook_lead_ads", "google_ads", "email", "webchat", "whatsapp"] } },
+        "questions": {
+          "type": "array", "minItems": 3, "maxItems": 7,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "text", "type"],
+            "properties": {
+              "id": { "$ref": "#/$defs/slug" },
+              "text": { "type": "string" },
+              "type": { "enum": ["choice", "text", "number", "date"] },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object", "additionalProperties": false, "required": ["label", "score"],
+                  "properties": { "label": { "type": "string" }, "score": { "type": "number" } }
+                }
+              },
+              "weight": { "type": "number", "minimum": 0, "default": 1 },
+              "skip_if": { "type": "string", "description": "Branching: skip when this expression over earlier answers is true." }
+            }
+          }
+        },
+        "llm_judgement_weight": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.3 },
+        "thresholds": {
+          "type": "object", "additionalProperties": false, "required": ["hot", "warm"],
+          "properties": { "hot": { "type": "number" }, "warm": { "type": "number" } }
+        },
+        "hot_notify": { "type": "array", "items": { "$ref": "#/$defs/e164" } },
+        "nurture": {
+          "type": "array", "maxItems": 7,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["day", "channel", "template"],
+            "properties": {
+              "day": { "type": "integer", "minimum": 0, "maximum": 14 },
+              "channel": { "enum": ["sms", "whatsapp", "email"] },
+              "template": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+
+    "crm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter"],
+      "properties": {
+        "adapter": { "enum": ["hubspot", "pipedrive", "gohighlevel", "zoho", "salesforce", "google_sheets", "airtable", "none"] },
+        "credential": { "$ref": "#/$defs/credential_ref" },
+        "field_mapping": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Recallo field → CRM field." },
+        "sheet_id": { "type": "string" }
+      }
+    },
+
+    "escalation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel", "target"],
+      "properties": {
+        "channel": { "enum": ["whatsapp_group", "slack", "telegram", "sms"] },
+        "target": { "type": "string", "description": "Group/channel ID or phone number." },
+        "credential": { "$ref": "#/$defs/credential_ref" },
+        "owner_backup": { "$ref": "#/$defs/e164" },
+        "claim_timeout_minutes": { "type": "integer", "minimum": 1, "default": 10 },
+        "ai_pause_minutes": { "type": "integer", "minimum": 0, "default": 120 }
+      }
+    },
+
+    "reporting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_emails"],
+      "properties": {
+        "owner_emails": { "type": "array", "minItems": 1, "items": { "type": "string", "format": "email" } },
+        "daily_digest": { "type": "boolean", "default": true },
+        "weekly_day": { "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"], "default": "mon" },
+        "weekly_time": { "$ref": "#/$defs/hhmm" },
+        "slack_webhook_credential": { "$ref": "#/$defs/credential_ref" },
+        "revenue_per_booking": { "$ref": "#/$defs/money" }
+      }
+    },
+
+    "compliance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regime", "stop_keywords", "retention_months"],
+      "properties": {
+        "regime": { "enum": ["au_spam_act", "us_tcpa", "uk_pecr", "eu_gdpr"] },
+        "marketing_consent_text": { "type": "string" },
+        "stop_keywords": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Matched against the whole trimmed message, case-insensitive — so 'cancel my appointment' is a booking request, while a bare 'CANCEL' is an opt-out." },
+        "stop_reply": { "type": "string" },
+        "retention_months": { "type": "integer", "minimum": 1, "maximum": 84, "default": 12 },
+        "phi_minimization": { "type": "boolean", "default": false, "description": "Redact health details from stored transcripts (required for US clinics)." },
+        "dpa_signed_on": { "type": "string", "format": "date" }
+      }
+    }
+  },
+
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 48 },
+    "e164": { "type": "string", "pattern": "^\\+[1-9][0-9]{6,14}$" },
+    "hhmm": { "type": "string", "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$" },
+    "credential_ref": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9_-]+$",
+      "description": "'<client_id>/<name>' — the name of an n8n credential or Supabase Vault secret. Never a secret value."
+    },
+    "money": {
+      "type": "object", "additionalProperties": false, "required": ["amount", "currency"],
+      "properties": { "amount": { "type": "number", "minimum": 0 }, "currency": { "enum": ["AUD", "GBP", "USD", "EUR"] } }
+    },
+    "day_hours": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["open", "close"],
+        "properties": { "open": { "$ref": "#/$defs/hhmm" }, "close": { "$ref": "#/$defs/hhmm" } }
+      }
+    },
+    "model_ref": {
+      "type": "object", "additionalProperties": false, "required": ["provider", "model", "credential"],
+      "properties": {
+        "provider": { "enum": ["anthropic", "openai"] },
+        "model": { "type": "string" },
+        "credential": { "$ref": "#/$defs/credential_ref" },
+        "effort": { "enum": ["low", "medium", "high"] }
+      }
+    }
+  }
+}

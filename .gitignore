@@ -1,0 +1,23 @@
+# Secrets — only *.env.example is ever committed
+.env
+*.env
+!*.env.example
+*.pem
+*.key
+id_*
+!id_*.pub
+
+# Local data
+backups/
+infra/data/
+*.dump
+*.sql.gz
+
+# Tooling
+node_modules/
+.next/
+dist/
+.vercel/
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,221 @@
+{
+  "$schema": "../client.schema.json",
+  "schema_version": 1,
+  "client_id": "demo-clinic",
+  "name": "Harbourside Dental (demo)",
+  "vertical": "dental",
+  "region": "au",
+  "timezone": "Australia/Sydney",
+  "locale": "en-AU",
+  "status": "demo",
+  "packages": ["A", "B"],
+  "care_plan": "grow",
+
+  "business": {
+    "legal_name": "Harbourside Dental Pty Ltd (fictional)",
+    "address": "Level 2, 100 Example Street, Sydney NSW 2000",
+    "phone": "+61200000000",
+    "email": "frontdesk@example.com",
+    "website": "https://example.com",
+    "google_review_url": "https://example.com/review",
+    "parking": "Two-hour street parking on Example Street; Wilson car park 150 m away.",
+    "hours": {
+      "mon": [{ "open": "08:00", "close": "18:00" }],
+      "tue": [{ "open": "08:00", "close": "18:00" }],
+      "wed": [{ "open": "08:00", "close": "19:30" }],
+      "thu": [{ "open": "08:00", "close": "18:00" }],
+      "fri": [{ "open": "08:00", "close": "16:00" }],
+      "sat": [{ "open": "09:00", "close": "13:00" }],
+      "sun": []
+    },
+    "holidays": [
+      { "date": "2026-12-25", "name": "Christmas Day" },
+      { "date": "2026-12-26", "name": "Boxing Day" },
+      { "date": "2027-01-01", "name": "New Year's Day" },
+      { "date": "2027-01-26", "name": "Australia Day" }
+    ],
+    "services": [
+      { "id": "check-up-clean", "name": "Check-up and clean", "duration_minutes": 45, "price": { "amount": 220, "currency": "AUD" }, "price_note": "gap-free with most health funds" },
+      { "id": "new-patient-exam", "name": "New patient exam with x-rays", "duration_minutes": 60, "price": { "amount": 280, "currency": "AUD" } },
+      { "id": "emergency", "name": "Emergency appointment", "duration_minutes": 30, "price": { "amount": 150, "currency": "AUD" }, "price_note": "from" },
+      { "id": "whitening-consult", "name": "Teeth whitening consultation", "duration_minutes": 30, "price": { "amount": 0, "currency": "AUD" } },
+      { "id": "invisalign-consult", "name": "Invisalign consultation", "duration_minutes": 45, "price": { "amount": 0, "currency": "AUD" } }
+    ],
+    "policies": {
+      "cancellation": "Please give at least 24 hours' notice. Late cancellations may incur a $50 fee.",
+      "cancellation_notice_hours": 24,
+      "payment": "Card, HICAPS on the spot, Afterpay for treatments over $300.",
+      "insurance": "We claim on the spot with all major health funds via HICAPS."
+    },
+    "staff": [
+      { "name": "Dr Maya Chen", "role": "Principal dentist", "bio": "15 years in general and cosmetic dentistry." },
+      { "name": "Dr Sam Patel", "role": "Dentist", "bio": "Special interest in nervous patients and children." },
+      { "name": "Jess Nguyen", "role": "Practice manager", "bio": "Looks after bookings, accounts and health-fund questions." }
+    ],
+    "faq_sources": [
+      { "type": "inline", "ref": "config/clients/demo-clinic.faq.md" }
+    ]
+  },
+
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "phone_number_id": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+      "display_number": "+61400000000",
+      "credential": "demo-clinic/whatsapp",
+      "templates": {
+        "reminder_24h": "appointment_reminder_24h",
+        "reminder_2h": "appointment_reminder_2h",
+        "no_show": "missed_appointment_rebook",
+        "missed_call": "missed_call_text_back"
+      }
+    },
+    "sms": { "enabled": true, "from_number": "+61400000001", "credential": "demo-clinic/twilio" },
+    "webchat": { "enabled": true, "allowed_origins": ["https://example.com"], "accent_color": "#0E7C86" },
+    "missed_call": { "enabled": true, "provider": "twilio", "text_back_channel": "sms", "text_back_delay_seconds": 10 },
+    "email": { "enabled": true, "from_address": "frontdesk@example.com", "credential": "demo-clinic/resend" }
+  },
+
+  "assistant": {
+    "persona_name": "Ava",
+    "tone": "Warm, brief and practical. Australian English. Plain words, no emojis, at most three short sentences per message.",
+    "disclosure_text": "Hi, I'm Ava, Harbourside Dental's virtual assistant. I can answer questions and book appointments; a team member can step in any time.",
+    "languages": ["en"],
+    "forbidden_topics": [
+      "diagnosis or clinical advice about symptoms",
+      "medication or dosage",
+      "prices or discounts not on the price list",
+      "comments on other clinics"
+    ],
+    "extra_rules": [
+      "If someone describes severe pain, swelling or bleeding, offer the next emergency slot and give the emergency text.",
+      "Never confirm a booking until book_appointment returns success."
+    ],
+    "after_hours": {
+      "greeting": "Thanks for messaging Harbourside Dental. We're closed right now, but I can still book you in or answer questions.",
+      "emergency_text": "For a dental emergency after hours, call the Sydney Dental Hospital emergency line or, if it's life-threatening, call 000.",
+      "allow_booking": true
+    },
+    "confidence_threshold": 0.7,
+    "max_messages_per_contact_per_hour": 30,
+    "llm": {
+      "primary": { "provider": "anthropic", "model": "claude-sonnet-5-5", "credential": "demo-clinic/anthropic", "effort": "low" },
+      "classifier": { "provider": "anthropic", "model": "claude-haiku-5-5", "credential": "demo-clinic/anthropic", "effort": "low" },
+      "fallback": { "provider": "openai", "model": "gpt-5-mini", "credential": "demo-clinic/openai" },
+      "embeddings": { "provider": "openai", "model": "text-embedding-3-small", "credential": "demo-clinic/openai" },
+      "monthly_cap_usd": 50
+    }
+  },
+
+  "booking": {
+    "adapter": "google_calendar",
+    "credential": "demo-clinic/google",
+    "calendars": [
+      { "id": "REPLACE_WITH_CALENDAR_ID_DR_CHEN", "practitioner": "Dr Maya Chen" },
+      { "id": "REPLACE_WITH_CALENDAR_ID_DR_PATEL", "practitioner": "Dr Sam Patel" }
+    ],
+    "buffer_minutes": 15,
+    "min_notice_minutes": 120,
+    "max_days_ahead": 60,
+    "new_patient_cutoff": "16:00",
+    "reminders_hours_before": [24, 2],
+    "no_show_followup_minutes": 30,
+    "send_ics": true
+  },
+
+  "lead_qualification": {
+    "sources": ["web_form", "facebook_lead_ads", "webchat", "whatsapp"],
+    "questions": [
+      {
+        "id": "treatment",
+        "text": "What are you interested in?",
+        "type": "choice",
+        "weight": 2,
+        "options": [
+          { "label": "Invisalign", "score": 10 },
+          { "label": "Whitening", "score": 6 },
+          { "label": "Check-up", "score": 4 },
+          { "label": "Just browsing", "score": 0 }
+        ]
+      },
+      {
+        "id": "timeline",
+        "text": "When would you like to start?",
+        "type": "choice",
+        "weight": 2,
+        "options": [
+          { "label": "This month", "score": 10 },
+          { "label": "In 1-3 months", "score": 6 },
+          { "label": "Not sure yet", "score": 2 }
+        ]
+      },
+      {
+        "id": "location",
+        "text": "Which suburb are you in?",
+        "type": "text",
+        "weight": 1
+      },
+      {
+        "id": "health-fund",
+        "text": "Do you have private health insurance with extras?",
+        "type": "choice",
+        "weight": 1,
+        "options": [
+          { "label": "Yes", "score": 8 },
+          { "label": "No", "score": 4 }
+        ]
+      }
+    ],
+    "llm_judgement_weight": 0.3,
+    "thresholds": { "hot": 7.5, "warm": 4.5 },
+    "hot_notify": ["+61400000002"],
+    "nurture": [
+      { "day": 0, "channel": "sms", "template": "nurture_welcome" },
+      { "day": 2, "channel": "email", "template": "nurture_what_to_expect" },
+      { "day": 5, "channel": "sms", "template": "nurture_free_consult" },
+      { "day": 9, "channel": "email", "template": "nurture_patient_story" },
+      { "day": 14, "channel": "sms", "template": "nurture_last_call" }
+    ]
+  },
+
+  "crm": {
+    "adapter": "google_sheets",
+    "credential": "demo-clinic/google",
+    "sheet_id": "REPLACE_WITH_SHEET_ID",
+    "field_mapping": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "lead_grade": "Grade",
+      "lead_score": "Score",
+      "source": "Source",
+      "transcript_url": "Transcript"
+    }
+  },
+
+  "escalation": {
+    "channel": "whatsapp_group",
+    "target": "REPLACE_WITH_STAFF_GROUP_ID",
+    "credential": "demo-clinic/whatsapp",
+    "owner_backup": "+61400000002",
+    "claim_timeout_minutes": 10,
+    "ai_pause_minutes": 120
+  },
+
+  "reporting": {
+    "owner_emails": ["owner@example.com"],
+    "daily_digest": true,
+    "weekly_day": "mon",
+    "weekly_time": "07:30",
+    "revenue_per_booking": { "amount": 250, "currency": "AUD" }
+  },
+
+  "compliance": {
+    "regime": "au_spam_act",
+    "marketing_consent_text": "Reply YES if you'd like occasional tips and offers from Harbourside Dental. Reply STOP any time to opt out.",
+    "stop_keywords": ["STOP", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"],
+    "stop_reply": "You're unsubscribed from Harbourside Dental messages. Reply START to opt back in.",
+    "retention_months": 12,
+    "phi_minimization": true
+  }
+}
