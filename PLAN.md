@@ -229,7 +229,7 @@ Phase 2 went ahead on the recommended defaults: Supabase in Sydney (`ap-southeas
 | Domain | **Rebranded to Nuvadesk** (§ Brand at the top). `nuvadesk.ai` / `nuvadesk.com` were unregistered on 2026-11-04. **Not bought yet**; that's on you (checklist above). |
 | `gpt-6-luna` fallback | **Compatible in code.** The fallback runs on the Responses API (gpt-6-luna only supports tools on Chat Completions with reasoning off). Official price is $0.10 / $0.50 / $0.01 cached per 1M tokens. **Not finalized:** `demo-clinic.json` keeps `gpt-5-mini` until `npm run qa -- --live --model openai:gpt-6-luna` scores ≥ 48/50 with no safety failures. |
 | Live QA (Claude Sonnet 5.5) | **Deferred to the pre-launch gate** (§9): it needs paid API credit. Mock QA (50/50) is the development gate. |
-| Provider checks | `scripts/check-integrations.ts` is ready for Anthropic, OpenAI, Google Calendar and Sheets, and Telegram. Twilio, WhatsApp, Resend and Cliniko are read-only probes, skipped until configured. **Now:** Google Calendar, Google Sheets and Telegram (free). Anthropic and OpenAI wait for the pre-launch gate. |
+| Provider checks | `scripts/check-integrations.ts` is ready for Anthropic, OpenAI, Google Calendar and Sheets, and Telegram. Twilio, WhatsApp, Resend and Cliniko are read-only probes, skipped until configured. **Passed:** Google Calendar and Google Sheets, read and `--write` (2026-11-04). Telegram deferred until after Phase 3. Anthropic and OpenAI wait for the pre-launch gate. |
 | Docker verification | **Green in GitHub Actions** (run 41839570279, all three jobs). `ci.yml` has three jobs. The `docker` job builds all images, starts the stack healthy, checks routing through Caddy and the job-token auth, and imports every n8n template on 2.46.4. The `supabase` job applies all migrations on a real local Supabase and passes the integration suite (Store, Vault RPCs, pgvector, concurrent claim, RLS isolation, retention purge). Production TLS through Cloudflare DNS-01 is still unverified until the domain and VPS exist. |
 | Design skills | `.claude/skills/frontend-design` (Anthropic, Apache-2.0) and `.claude/skills/ui-ux-pro-max` (v2.15.0, MIT): reviewed, pinned, with provenance in `SOURCE.md`. A new Claude Code session picks them up. |
 
@@ -249,7 +249,7 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 | Server / Docker | No VPS. The Docker stack is verified in GitHub Actions on every push (free for public repos; private repos get the free plan's monthly minutes). For a local stack, use Docker Engine inside WSL2 or Podman: both free and open source. Docker Desktop needs a paid subscription at larger companies. | Hetzner VPS, real TLS via Cloudflare DNS-01 |
 | LLMs (Claude, OpenAI) | Mock models only. Neither API has a free tier. | Live QA on Claude Sonnet 5.5 (≥ 48/50), then the `gpt-6-luna` evaluation; finalize the fallback per §8 |
 | Google Calendar + Sheets | **Do now.** Free: a Google Cloud project with no billing account, OAuth consent screen in Testing mode, Desktop OAuth client. Testing-mode refresh tokens expire after 7 days; re-run `node scripts/google-oauth.ts` when that happens. | — |
-| Telegram | **Do now.** Bot and group are free. | — |
+| Telegram | Free; **deferred until after Phase 3**. | — |
 | Supabase | Local Supabase in CI (already green). A free-plan cloud project when the dashboard needs a hosted database (free projects pause after a week idle). | Paid plan, per-region projects |
 | n8n, Uptime Kuma, Caddy | Self-hosted community editions, free. | — |
 | Twilio, WhatsApp, Cliniko, Resend | Not set up. Revisit free sandbox or test options (e.g. Meta's WhatsApp test number) only when a feature needs them. | Real numbers, sender verification, client accounts |
@@ -260,5 +260,6 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 - Phase 3 starts once:
   - CI is green (done)
   - mock QA is 50/50 (done)
-  - Google Calendar, Google Sheets and Telegram pass `check-integrations` (read and `--write`)
+  - Google Calendar and Google Sheets pass `check-integrations` (read and `--write`): **done 2026-11-04**
+- **Telegram is deferred until after Phase 3** (your call, 2026-11-04). It only carries ops alerts and the optional Telegram escalation channel; the demo clinic escalates via `whatsapp_staff`, and nothing in the dashboard or website depends on it. Setup steps stay in RUNBOOK §12.5.
 - Live LLM QA and the `gpt-6-luna` decision move to the **pre-launch gate**, before the first paying client.
