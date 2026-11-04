@@ -40,7 +40,7 @@ log "JSON files parse"
 "$PY" - <<'PY'
 import json, pathlib, sys
 bad = 0
-files = [p for p in pathlib.Path(".").rglob("*.json") if "node_modules" not in p.parts and not p.name.endswith(".secrets.json") and not p.name.startswith("tsconfig")]  # tsconfig is JSONC
+files = [p for p in pathlib.Path(".").rglob("*.json") if "node_modules" not in p.parts and ".next" not in p.parts and not p.name.endswith(".secrets.json") and not p.name.startswith("tsconfig")]  # tsconfig is JSONC
 for p in files:
     try:
         json.loads(p.read_text(encoding="utf-8"))
@@ -59,16 +59,18 @@ node --check webchat/widget.js
 echo "ok"
 
 if [[ -d node_modules ]]; then
-  log "nuvadesk-core: typecheck, unit tests, 50-conversation QA (mock models)"
+  log "workspaces: typecheck, unit tests, 50-conversation QA (mock models)"
   npm run --silent typecheck
   npm test --silent
   npm run --silent qa
+  log "dashboard + site: production builds"
+  npm run --silent build
 else
-  warn "node_modules missing: run 'npm ci' to include core typecheck, tests and QA"
+  warn "node_modules missing: run 'npm ci' to include typecheck, tests, QA and builds"
 fi
 
 log "secret scan of tracked files"
-if git grep -nIE '((^|[^A-Za-z0-9_-])sk-ant-[A-Za-z0-9_-]{10,}|(^|[^A-Za-z0-9_-])sk-(proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}|GOCSPX-[A-Za-z0-9_-]{20,}|1//0[A-Za-z0-9_-]{30,}|re_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,})' -- . ':!scripts/validate.sh'; then
+if git grep -nIE '((^|[^A-Za-z0-9_-])sk-ant-[A-Za-z0-9_-]{10,}|(^|[^A-Za-z0-9_-])sk-(proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}|GOCSPX-[A-Za-z0-9_-]{20,}|1//0[A-Za-z0-9_-]{30,}|re_[A-Za-z0-9]{8}_[A-Za-z0-9]{16,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}|sb_secret_[A-Za-z0-9_-]{16,}|eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,})' -- . ':!scripts/validate.sh'; then
   die "possible secret committed (see above)"
 fi
 echo "ok: nothing found"

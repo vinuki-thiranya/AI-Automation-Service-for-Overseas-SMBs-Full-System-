@@ -2,11 +2,20 @@
   "name": "nuvadesk",
   "private": true,
   "type": "module",
-  "workspaces": ["core"],
-  "engines": { "node": ">=26" },
+  "workspaces": [
+    "core",
+    "dashboard",
+    "site"
+  ],
+  "engines": {
+    "node": ">=26"
+  },
   "scripts": {
-    "typecheck": "npm -w core run typecheck",
-    "test": "npm -w core test",
+    "typecheck": "npm run typecheck --workspaces",
+    "test": "npm test --workspaces",
+    "build": "npm run build -w dashboard -w site",
+    "dev:dashboard": "npm run dev -w dashboard",
+    "dev:site": "npm run dev -w site",
     "gen:types": "npm -w core run gen:types",
     "qa": "node qa/run.ts",
     "new-client": "node scripts/new-client.ts"

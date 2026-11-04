@@ -21,6 +21,8 @@ node_modules/
 .next/
 dist/
 .vercel/
+*.tsbuildinfo
+next-env.d.ts
 .DS_Store
 Thumbs.db
 *.log
@@ -34,3 +36,7 @@ qa/reports/
 
 # Python bytecode (e.g. from running .claude/skills/*/scripts)
 __pycache__/
+
+# Local screenshots and Lighthouse reports (scripts/screenshots.ts, Lighthouse runs)
+qa/screenshots/
+qa/lighthouse/
