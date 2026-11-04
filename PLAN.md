@@ -219,3 +219,16 @@ Phase 2 went ahead on the recommended defaults: Supabase in Sydney (`ap-southeas
 | p95 response under 10 s | **Not measured.** Needs live traffic; `metrics_daily.p95_response_seconds` records it. |
 
 **Verified only against documentation and HTTP fakes, not live accounts:** Cliniko, Acuity, Microsoft Bookings, Calendly, HubSpot, Pipedrive, GoHighLevel, Google Sheets, Resend, the Twilio and WhatsApp send formats, and the n8n template imports. Each gets verified on the client's integration days (spec §6.3, days 4–6).
+
+---
+
+## 8. Pre-Phase-3 gate (2026-11-04)
+
+| Item | Status |
+|---|---|
+| Domain | **Rebranded to Nuvadesk** (§ Brand at the top). `nuvadesk.ai` / `nuvadesk.com` were unregistered on 2026-11-04. **Not bought yet**; that's on you (checklist above). |
+| `gpt-6-luna` fallback | **Compatible in code.** The fallback runs on the Responses API (gpt-6-luna only supports tools on Chat Completions with reasoning off). Official price is $0.10 / $0.50 / $0.01 cached per 1M tokens. **Not finalized:** `demo-clinic.json` keeps `gpt-5-mini` until `npm run qa -- --live --model openai:gpt-6-luna` scores ≥ 48/50 with no safety failures. |
+| Live QA (Claude Sonnet 5.5) | **Waiting for keys** in `.env.local` (RUNBOOK §12). |
+| Provider checks | `scripts/check-integrations.ts` is ready for Anthropic, OpenAI, Google Calendar and Sheets, and Telegram. Twilio, WhatsApp, Resend and Cliniko are read-only probes, skipped until configured. **Waiting for keys.** |
+| Docker verification | **Green in GitHub Actions** (run 41839570279, all three jobs). `ci.yml` has three jobs. The `docker` job builds all images, starts the stack healthy, checks routing through Caddy and the job-token auth, and imports every n8n template on 2.46.4. The `supabase` job applies all migrations on a real local Supabase and passes the integration suite (Store, Vault RPCs, pgvector, concurrent claim, RLS isolation, retention purge). Production TLS through Cloudflare DNS-01 is still unverified until the domain and VPS exist. |
+| Design skills | `.claude/skills/frontend-design` (Anthropic, Apache-2.0) and `.claude/skills/ui-ux-pro-max` (v2.15.0, MIT): reviewed, pinned, with provenance in `SOURCE.md`. A new Claude Code session picks them up. |
