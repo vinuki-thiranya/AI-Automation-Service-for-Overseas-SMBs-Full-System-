@@ -132,3 +132,32 @@ jobs:
         run: |
           { tail -n 30 /tmp/supabase.log 2>/dev/null; docker logs supabase_db_nuvadesk --tail 15 2>&1; } | sed 's/\x1b\[[0-9;]*m//g' \
             | while IFS= read -r line; do [ -n "$line" ] && echo "::error title=supabase::${line:0:400}"; done; true
+
+  lighthouse:
+    name: Website Lighthouse (mobile, 95+)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.13.0
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w site
+      - name: Lighthouse on home, a package, a vertical and a blog post (median of 3 runs each)
+        run: |
+          npm run start -w site > /tmp/site.log 2>&1 &
+          for _ in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3001/robots.txt && break; sleep 1; done
+          set -o pipefail
+          node scripts/lighthouse.ts --runs 3 2>&1 | tee /tmp/lighthouse.log
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: lighthouse-reports
+          path: qa/lighthouse/
+          retention-days: 14
+      - name: Report failure detail
+        if: failure()
+        run: grep -E '^(LOW|lighthouse failed)' /tmp/lighthouse.log | while IFS= read -r line; do echo "::error title=lighthouse::${line:0:400}"; done; true

@@ -10,6 +10,9 @@ if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // The whole stylesheet is ~6 KB gzipped: inlining it removes the one render-blocking request
+  // (Lighthouse mobile, PLAN Phase 3), at the cost of not caching it across pages.
+  experimental: { inlineCss: true },
   async headers() {
     return [{
       source: "/:path*",

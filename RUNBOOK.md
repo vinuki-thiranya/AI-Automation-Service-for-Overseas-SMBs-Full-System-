@@ -253,3 +253,33 @@ Credentials for testing live in `.env.local` at the repo root. It is gitignored,
    - Each run costs roughly USD 1–3 and writes a report to `qa/reports/` (gitignored).
 
 Twilio, WhatsApp, Resend and Cliniko checks are already in the script. They report `skip` until you add their keys to `.env.local`.
+
+## 13. Dashboard and website on your laptop (Phase 3)
+
+Both apps read the root `.env.local`. Nothing here costs money (PLAN §9).
+
+**Hosted Supabase (free plan, once).** The project is `icwwamxnyhxrirzlbqki` (Asia-Pacific, Seoul). `.env.local` needs:
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the publishable key)
+- `SUPABASE_SERVICE_ROLE_KEY` (the secret key; scripts only, never used by the apps)
+- `SUPABASE_DB_URL` (Connect → Session pooler URI, with `[YOUR-PASSWORD]` left in place) and `SUPABASE_DB_PASSWORD`
+
+In Supabase → Authentication → URL Configuration: Site URL `http://localhost:3000`, redirect URL `http://localhost:3000/**`.
+Free projects pause after a week without activity; restore them from the Supabase dashboard (data is kept).
+
+| Task | Command |
+|---|---|
+| Apply new migrations | `node scripts/db-push.ts --dry-run`, then `node scripts/db-push.ts` (never prints the password) |
+| Reseed the two demo clinics (90 days; wipes demo clients only) | `node scripts/seed-demo.ts` |
+| Give someone access | `node scripts/invite-user.ts <email> --agency`, or `node scripts/invite-user.ts <email> <slug> owner\|staff` (add `--email` to send Supabase's invite email) |
+| Sign in without email (testing) | `node scripts/dev-login.ts <email>` prints a one-time link, valid about an hour |
+| Dashboard | `npm run dev:dashboard` → http://localhost:3000 (or `npm run build -w dashboard && npm run start -w dashboard`) |
+| Website | `npm run dev:site` → http://localhost:3001 |
+| Screenshots | `node scripts/screenshots.ts site`, or `node scripts/screenshots.ts dashboard --login "<dev-login link>"`; output in `qa/screenshots/` |
+| Website smoke test (also in CI) | `node scripts/site-smoke.ts` against a running site |
+| Lighthouse, mobile, target 95+ | Build and start the site, then `node scripts/lighthouse.ts` (median of 3 runs per page; `--runs 5` for a firmer number). Close heavy apps first: blocking time depends on how busy the laptop is. Reports in `qa/lighthouse/` |
+
+Demo sign-ins (example.com addresses, no inboxes): `agency.demo@example.com`, `owner.harbourside@example.com`, `staff.harbourside@example.com`, `staff.northside@example.com`. Use `dev-login.ts` for them.
+
+Supabase's built-in email sends only a few magic links per hour on the free plan. Real client logins need a custom SMTP sender (Resend, pre-launch gate).
+
+**Search Console and backlinks after launch:** [docs/marketing/seo.md](docs/marketing/seo.md).

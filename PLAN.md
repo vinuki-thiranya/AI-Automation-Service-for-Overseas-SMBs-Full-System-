@@ -263,3 +263,51 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
   - Google Calendar and Google Sheets pass `check-integrations` (read and `--write`): **done 2026-11-04**
 - **Telegram is deferred until after Phase 3** (your call, 2026-11-04). It only carries ops alerts and the optional Telegram escalation channel; the demo clinic escalates via `whatsapp_staff`, and nothing in the dashboard or website depends on it. Setup steps stay in RUNBOOK §12.5.
 - Live LLM QA and the `gpt-6-luna` decision move to the **pre-launch gate**, before the first paying client.
+
+---
+
+## 10. Phase 3 as built (2026-11-05)
+
+**What exists**
+- **Database** (`supabase/migrations/20261107000000_dashboard.sql`, `20261108000000_enquiry_hours.sql`):
+  - New tables: `reply_drafts`, `invoices`, `client_resources`.
+  - Staff can no longer read money: `metrics_daily` is owner/agency only, and `dashboard_metrics` nulls cost and revenue for staff.
+  - RPCs: `my_memberships`, `search_messages` (on the indexed text expression), `decide_reply_draft` (the only write, with an audit row), `agency_health`, `enquiry_hours`, `enquiries_by_day` (after hours judged against each clinic's own hours and holidays).
+- **Dashboard** (`dashboard/`, Next.js 16, port 3000):
+  - Magic-link sign-in, agency / owner / staff roles.
+  - Overview: range picker, KPIs, enquiries split by opening hours, a week-by-hour heatmap, reply time, bookings, leads.
+  - Conversation search with highlighted matches, transcripts, the Package D approval queue, billing (owner and agency), help and walkthrough, agency health.
+  - Light and dark, phone to desktop. All reads run as the signed-in user, so RLS decides what they see; the service role never reaches the app.
+- **Website** (`site/`, Next.js 16 + MDX, port 3001):
+  - Home, 4 package pages, 5 industry pages, a labelled demo case study, about, contact (Cal.com when configured), privacy.
+  - en-AU at the root, plus `/en-gb` and `/en-us`, with hreflang.
+  - JSON-LD (Organization, Service, FAQPage, BlogPosting), sitemap, robots, Open Graph image.
+  - A 12-post calendar with 3 posts written.
+  - Designed here (no Claude Design handoff, your call); the design system is in `design-system/nuvadesk/MASTER.md`.
+- **Hosted dev database:** free Supabase project (Seoul), migrations applied with `scripts/db-push.ts`, two fictional demo clinics seeded with 90 days of activity (`scripts/seed-demo.ts`).
+- **Scripts:**
+  - `invite-user.ts`, `dev-login.ts`
+  - `screenshots.ts`
+  - `site-smoke.ts` (in `validate.sh`, so CI runs it)
+  - `lighthouse.ts` (CI job `lighthouse`)
+- **Docs:** RUNBOOK §13 (running both apps), `docs/marketing/seo.md` (Search Console steps and the first 10 backlinks).
+
+**Exit criteria status**
+| Criterion | Status |
+|---|---|
+| RLS: staff of client A cannot read client B | **Passed.** 9 integration tests in `core/test/integration/dashboard.int.test.ts`, green in the CI `supabase` job. They cover cross-client reads, money hidden from staff, scoped search, drafts decided once and only by their own client, and anonymous callers. Also checked by hand in the running dashboard as staff. |
+| Screenshots reviewed | **Done.** You reviewed both apps (2026-11-05) and asked to carry on. Polish after review: the date-range picker fits one row on phones, conversation previews use the full width, and long clinic names wrap. |
+| Lighthouse mobile 95+ | **Accessibility, Best practices and SEO: 100 on all four sample pages.** Performance: first paint 0.9–1.5 s, layout shift 0 and LCP at full marks; the only variable is blocking time. On this laptop, with VS Code and other apps busy, runs on the same unchanged page ranged 66–99, and Lighthouse flagged most runs as on an overloaded host. Medians were 88–95. The authoritative number is the CI `lighthouse` job, which runs on a clean runner and fails under 95. See the CI results for the current figures. |
+
+**Decisions made while building**
+| Decision | Why |
+|---|---|
+| Recharts for the dashboard charts | Accessible SVG, custom legend and tooltip; chart colours checked with the dataviz validator for colour blindness and contrast in both themes. |
+| Website CSS inlined (`experimental.inlineCss`) | The stylesheet is about 6 KB, so inlining removes the only render-blocking request. |
+| Website has almost no JavaScript of its own | The hero animation is CSS only; the Cal.com embed loads only on click. What remains is Next's runtime. |
+| Demo number, hero video, Cal.com and hosting are optional through env vars | All are paid or need accounts (PLAN §9); the site shows a labelled sample conversation and an email call to action until they're set. |
+
+**Before launch (added to the pre-launch gate)**
+- **Privacy policy legal review.** `/privacy` is written to match what the system actually does, but it is a draft. Have a lawyer in each market review it (Australian Privacy Act / APPs, UK GDPR, US state laws) before it goes live. Meta business verification and the Google OAuth consent screen both need it live on the real domain.
+- Hosting for both apps (Vercel Hobby is non-commercial only), `NEXT_PUBLIC_SITE_URL`, and a custom SMTP sender for magic links (Supabase's free sender is a few emails per hour).
+- Search Console and the backlink list in `docs/marketing/seo.md`, on launch day.

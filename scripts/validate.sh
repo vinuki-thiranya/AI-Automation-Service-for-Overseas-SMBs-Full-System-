@@ -65,6 +65,14 @@ if [[ -d node_modules ]]; then
   npm run --silent qa
   log "dashboard + site: production builds"
   npm run --silent build
+  log "site: smoke test of the built pages (sitemap, robots, canonicals, hreflang, JSON-LD)"
+  (cd site && exec node ../node_modules/next/dist/bin/next start --port 3101) >/tmp/site-smoke.log 2>&1 &
+  site_pid=$!
+  for _ in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3101/robots.txt && break; sleep 1; done
+  smoke_ok=0
+  node scripts/site-smoke.ts --base http://localhost:3101 || smoke_ok=$?
+  kill "$site_pid" 2>/dev/null || true
+  [[ $smoke_ok -eq 0 ]] || die "site smoke test failed (server log: /tmp/site-smoke.log)"
 else
   warn "node_modules missing: run 'npm ci' to include typecheck, tests, QA and builds"
 fi
