@@ -119,13 +119,23 @@ export interface ThreadListItem {
   openEscalation: boolean;
 }
 
-export async function listThreads(clientId: string, opts: { channel?: string; status?: string; before?: string; limit?: number } = {}): Promise<ThreadListItem[]> {
+/** Threads with an enquiry in one local weekday (1 = Mon) and, optionally, hour: a heatmap cell. */
+export async function threadsInHour(clientId: string, from: string, to: string, dow: number, hour?: number, before?: string): Promise<string[]> {
   const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc("threads_in_hour", { p_client: clientId, p_from: from, p_to: to, p_dow: dow, p_hour: hour ?? null, p_limit: 40, p_before: before ?? null });
+  if (error) fail("threads_in_hour", error);
+  return ((data ?? []) as { thread_id: string }[]).map((r) => r.thread_id);
+}
+
+export async function listThreads(clientId: string, opts: { channel?: string; status?: string; before?: string; limit?: number; ids?: string[] } = {}): Promise<ThreadListItem[]> {
+  const supabase = await supabaseServer();
+  if (opts.ids && opts.ids.length === 0) return [];
   let q = supabase.from("threads").select("id, channel, status, last_message_at, contact:contacts(name, phone)")
     .eq("client_id", clientId).order("last_message_at", { ascending: false }).limit(opts.limit ?? 40);
   if (opts.channel) q = q.eq("channel", opts.channel);
   if (opts.status) q = q.eq("status", opts.status);
   if (opts.before) q = q.lt("last_message_at", opts.before);
+  if (opts.ids) q = q.in("id", opts.ids);
   const { data, error } = await q;
   if (error) fail("threads", error);
   const threads = (data ?? []) as unknown as Omit<ThreadListItem, "preview" | "previewAuthor" | "openEscalation">[];

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Hours } from "@/lib/data";
 
 const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -19,7 +20,10 @@ const hourLabel = (h: number) => (h === 0 ? "12am" : h < 12 ? `${h}am` : h === 1
 // Hour × weekday grid. Cells inside opening hours use the business-hours hue and an outline; cells outside
 // use the after-hours hue. Intensity is the share of the busiest hour. The grid is a picture; the same
 // numbers are in the table below it for screen readers and anyone who prefers figures.
-export function Heatmap({ cells, hours }: { cells: { weekday: number; hour: number; enquiries: number }[]; hours: Hours }) {
+// With `conversationsHref`, a cell with enquiries opens those conversations (pointer and touch); the table
+// carries the same links per day for keyboard and screen-reader users, so the grid needs no 168 tab stops.
+export function Heatmap({ cells, hours, conversationsHref }: { cells: { weekday: number; hour: number; enquiries: number }[]; hours: Hours; conversationsHref?: string }) {
+  const cellHref = (day: number, hour?: number) => conversationsHref && `${conversationsHref}${conversationsHref.includes("?") ? "&" : "?"}day=${day}${hour === undefined ? "" : `&hour=${hour}`}`;
   const grid = new Map(cells.map((c) => [`${c.weekday}:${c.hour}`, Number(c.enquiries)]));
   const max = Math.max(1, ...cells.map((c) => Number(c.enquiries)));
   const totals = DAY_LABEL.map((_, i) => {
@@ -42,16 +46,17 @@ export function Heatmap({ cells, hours }: { cells: { weekday: number; hour: numb
                 const n = grid.get(`${i + 1}:${h}`) ?? 0;
                 const open = isOpenHour(hours, i + 1, h);
                 const strength = n === 0 ? 0 : 0.18 + 0.82 * (n / max);
-                return (
-                  <div
-                    key={h}
-                    title={`${d} ${hourLabel(h)}: ${n} ${n === 1 ? "enquiry" : "enquiries"}${open ? "" : " (after hours)"}`}
-                    className={`h-[18px] rounded-[3px] ${open ? "ring-1 ring-series-business/40 ring-inset" : ""}`}
-                    style={{
-                      backgroundColor: n === 0 ? "var(--paper)" : `color-mix(in oklab, var(${open ? "--series-business" : "--series-after"}) ${Math.round(strength * 100)}%, var(--surface))`,
-                    }}
-                  />
-                );
+                const props = {
+                  title: `${d} ${hourLabel(h)}: ${n} ${n === 1 ? "enquiry" : "enquiries"}${open ? "" : " (after hours)"}${n && conversationsHref ? ". Click to see them." : ""}`,
+                  className: `block h-[18px] rounded-[3px] ${open ? "ring-1 ring-series-business/40 ring-inset" : ""}`,
+                  style: {
+                    backgroundColor: n === 0 ? "var(--paper)" : `color-mix(in oklab, var(${open ? "--series-business" : "--series-after"}) ${Math.round(strength * 100)}%, var(--surface))`,
+                  },
+                };
+                const href = n ? cellHref(i + 1, h) : undefined;
+                return href
+                  ? <Link key={h} href={href} tabIndex={-1} {...props} className={`${props.className} transition-transform hover:scale-125 hover:ring-2 hover:ring-ink`} />
+                  : <div key={h} {...props} />;
               })}
             </div>
           ))}
@@ -68,11 +73,14 @@ export function Heatmap({ cells, hours }: { cells: { weekday: number; hour: numb
       </figcaption>
       <details className="mt-3 text-sm">
         <summary className="cursor-pointer font-semibold text-ink-muted hover:text-ink">Show as a table</summary>
-        <table className="tabular mt-2 w-full max-w-sm text-left">
-          <thead><tr className="border-b border-rule"><th className="py-1.5 font-semibold">Day</th><th className="py-1.5 text-right font-semibold">Open hours</th><th className="py-1.5 text-right font-semibold">After hours</th></tr></thead>
+        <table className="tabular mt-2 w-full max-w-md text-left">
+          <thead><tr className="border-b border-rule"><th className="py-1.5 font-semibold">Day</th><th className="py-1.5 text-right font-semibold">Open hours</th><th className="py-1.5 text-right font-semibold">After hours</th>{conversationsHref && <th className="py-1.5"><span className="sr-only">Conversations</span></th>}</tr></thead>
           <tbody>
             {DAY_LABEL.map((d, i) => (
-              <tr key={d} className="border-b border-rule last:border-0"><td className="py-1.5">{d}</td><td className="py-1.5 text-right">{totals[i]!.open}</td><td className="py-1.5 text-right">{totals[i]!.closed}</td></tr>
+              <tr key={d} className="border-b border-rule last:border-0">
+                <td className="py-1.5">{d}</td><td className="py-1.5 text-right">{totals[i]!.open}</td><td className="py-1.5 text-right">{totals[i]!.closed}</td>
+                {conversationsHref && <td className="py-1.5 pl-4 text-right">{totals[i]!.open + totals[i]!.closed > 0 && <Link href={cellHref(i + 1)!} className="font-semibold text-brand underline-offset-4 hover:underline">See them<span className="sr-only"> ({d})</span></Link>}</td>}
+              </tr>
             ))}
           </tbody>
         </table>

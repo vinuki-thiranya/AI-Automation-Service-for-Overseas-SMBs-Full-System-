@@ -3,6 +3,7 @@ import { Inbox, LayoutDashboard, LifeBuoy, Menu, MessagesSquare, Receipt, X } fr
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { PaletteTrigger } from "./command-palette";
 import { Wordmark } from "./wordmark";
 
 export interface NavItem {
@@ -14,7 +15,7 @@ export interface NavItem {
 }
 const ICONS = { overview: LayoutDashboard, conversations: MessagesSquare, approvals: Inbox, billing: Receipt, help: LifeBuoy };
 
-export function Shell({ nav, header, footer, children }: { nav: NavItem[]; header: ReactNode; footer: ReactNode; children: ReactNode }) {
+export function Shell({ nav, header, command, footer, children }: { nav: NavItem[]; header: ReactNode; command?: ReactNode; footer: ReactNode; children: ReactNode }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   useEffect(() => setOpen(false), [pathname]);
@@ -29,7 +30,8 @@ export function Shell({ nav, header, footer, children }: { nav: NavItem[]; heade
     <nav aria-label="Main" className="flex h-full flex-col gap-6 p-4">
       <Link href="/" className="hidden px-3 pt-2 lg:block"><Wordmark /></Link>
       {header}
-      <ul className="flex flex-col gap-1">
+      {command && <PaletteTrigger />}
+      <ul data-tour="nav" className="-mt-2 flex flex-col gap-1">
         {nav.map((item) => {
           const Icon = ICONS[item.icon];
           const active = item.icon === "overview" ? pathname === item.href : pathname.startsWith(item.href);
@@ -37,6 +39,7 @@ export function Shell({ nav, header, footer, children }: { nav: NavItem[]; heade
             <li key={item.href}>
               <Link
                 href={item.href}
+                data-tour={item.icon === "conversations" ? "conversations" : undefined}
                 aria-current={active ? "page" : undefined}
                 className={`flex h-11 items-center gap-3 rounded-md px-3 font-semibold ${active ? "bg-brand-soft text-ink" : "text-ink-muted hover:bg-brand-soft/60 hover:text-ink"}`}
               >
@@ -72,8 +75,8 @@ export function Shell({ nav, header, footer, children }: { nav: NavItem[]; heade
       </header>
       {open && (
         <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <button type="button" className="absolute inset-0 bg-ink/30" aria-label="Close menu" onClick={() => setOpen(false)} />
-          <div id="mobile-nav" className="absolute inset-y-0 left-0 w-[85%] max-w-xs overflow-y-auto border-r border-rule bg-paper">
+          <button type="button" className="drawer-backdrop absolute inset-0 bg-night/40" aria-label="Close menu" onClick={() => setOpen(false)} />
+          <div id="mobile-nav" className="sheet-left absolute inset-y-0 left-0 w-[85%] max-w-xs overflow-y-auto border-r border-rule bg-paper">
             <button
               type="button" onClick={() => setOpen(false)} aria-label="Close menu"
               className="absolute top-3 right-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-md"
@@ -86,6 +89,7 @@ export function Shell({ nav, header, footer, children }: { nav: NavItem[]; heade
       )}
       <aside className="sticky top-0 hidden h-dvh border-r border-rule lg:block">{rail}</aside>
       <main id="main" className="min-w-0 px-4 py-6 sm:px-8 lg:px-10 lg:py-10">{children}</main>
+      {command}
     </div>
   );
 }

@@ -178,6 +178,20 @@ describe.skipIf(!url || !serviceKey || !anonKey)("dashboard access rules", () =>
     ]);
   });
 
+  it("lists the threads behind a heatmap cell, matching enquiry_hours, scoped like threads", async () => {
+    const cell = (await must(users.staffA.rpc("enquiry_hours", { p_client: ids.a.client, p_from: "2000-01-01", p_to: "2100-01-01" })) as { weekday: number; hour: number }[])[0]!;
+    const args = { p_client: ids.a.client, p_from: "2000-01-01", p_to: "2100-01-01", p_dow: cell.weekday };
+    const inCell = await must(users.staffA.rpc("threads_in_hour", { ...args, p_hour: cell.hour })) as { thread_id: string }[];
+    expect(inCell.map((r) => r.thread_id)).toEqual([ids.a.thread]);
+    // The whole weekday includes it; another hour of that day doesn't.
+    expect((await must(users.staffA.rpc("threads_in_hour", args)) as unknown[]).length).toBe(1);
+    expect(await must(users.staffA.rpc("threads_in_hour", { ...args, p_hour: (cell.hour + 1) % 24 }))).toEqual([]);
+    // Staff of A get nothing for B, even naming B's client id.
+    expect(await must(users.staffA.rpc("threads_in_hour", { ...args, p_client: ids.b.client, p_hour: null }))).toEqual([]);
+    const anon = createClient(url, anonKey, { auth: { persistSession: false } });
+    expect((await anon.rpc("threads_in_hour", args)).error).not.toBeNull();
+  });
+
   it("gives anonymous callers nothing", async () => {
     const anon = createClient(url, anonKey, { auth: { persistSession: false } });
     expect((await anon.rpc("my_memberships")).error).not.toBeNull();

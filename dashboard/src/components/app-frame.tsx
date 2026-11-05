@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { getMemberships, getUser, isAgency, type Membership } from "@/lib/data";
 import { ClientSwitcher } from "./client-switcher";
+import { CommandPalette } from "./command-palette";
 import { Shell, type NavItem } from "./shell";
 import { ThemeToggle, type Theme } from "./theme-toggle";
 
@@ -14,6 +15,13 @@ export async function AppFrame({ current, nav, children }: { current: Membership
     <Shell
       nav={nav}
       header={<ClientSwitcher current={current} memberships={memberships} agency={agency} />}
+      command={
+        <CommandPalette
+          pages={nav.map((n) => ({ label: n.label, href: n.href }))}
+          clinics={[...(agency && current ? [{ name: "All clients", href: "/agency" }] : []), ...memberships.filter((m) => m.slug !== current?.slug).map((m) => ({ name: m.name, href: `/c/${m.slug}` }))]}
+          searchHref={current ? `/c/${current.slug}/conversations` : undefined}
+        />
+      }
       footer={
         <>
           <ThemeToggle initial={theme} />

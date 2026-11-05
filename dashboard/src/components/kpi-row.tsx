@@ -1,6 +1,7 @@
 "use client";
 import { animate, useReducedMotion } from "motion/react";
 import { useEffect, useRef } from "react";
+import { Info } from "./info";
 
 export interface Kpi {
   label: string;
@@ -9,6 +10,8 @@ export interface Kpi {
   format: "count" | "text";       // only counts animate
   delta?: { text: string; direction: "up" | "down" | "flat"; good: boolean } | null;
   note?: string;
+  /** Plain definition for the "What is this?" popover, matching how the nightly rollup counts it. */
+  info?: string;
 }
 
 function Figure({ kpi }: { kpi: Kpi }) {
@@ -34,7 +37,7 @@ export function KpiRow({ items }: { items: Kpi[] }) {
     <dl className="grid grid-cols-2 border-y border-rule sm:grid-cols-3 xl:grid-cols-6">
       {items.map((k) => (
         <div key={k.label} className="border-rule px-1 py-5 sm:px-4 [&:not(:last-child)]:border-b sm:[&:not(:last-child)]:border-b-0 sm:border-r sm:last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 xl:[&:nth-child(3n)]:border-r xl:last:border-r-0">
-          <dt className="text-sm text-ink-muted">{k.label}</dt>
+          <dt className="flex items-start justify-between gap-1 text-sm text-ink-muted"><span className="pt-1">{k.label}</span>{k.info && <Info label={k.label}>{k.info}</Info>}</dt>
           <dd className="font-display tabular mt-1 text-2xl font-bold tracking-[-0.01em]"><Figure kpi={k} /></dd>
           {k.delta ? (
             <dd className={`mt-1 text-sm font-semibold ${k.delta.direction === "flat" ? "text-ink-muted" : k.delta.good ? "text-brand" : "text-signal"}`}>

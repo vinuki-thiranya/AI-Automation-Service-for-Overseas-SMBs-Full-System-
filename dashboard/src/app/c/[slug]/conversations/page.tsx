@@ -2,7 +2,8 @@ import { Search } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMembership, listThreads, searchMessages } from "@/lib/data";
+import { TrackStep } from "@/components/onboarding";
+import { getMembership, listThreads, searchMessages, threadsInHour } from "@/lib/data";
 import { CHANNEL_LABEL, formatDate, splitHighlights } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Conversations" };
@@ -14,9 +15,16 @@ const STATUS: Record<string, { label: string; className: string }> = {
 };
 const AUTHOR: Record<string, string> = { customer: "Patient", assistant: "Assistant", staff: "Staff", system: "System" };
 
+const WEEKDAY = ["Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"];
+const clock = (h: number) => (h === 0 ? "12am" : h < 12 ? `${h}am` : h === 12 ? "12pm" : `${h - 12}pm`);
+function cellLabel(cell: { day: number; hour?: number }) {
+  const day = WEEKDAY[cell.day - 1];
+  return cell.hour === undefined ? day : `${day}, ${clock(cell.hour)} to ${clock((cell.hour + 1) % 24)}`;
+}
+
 export default async function Conversations({ params, searchParams }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ q?: string; channel?: string; status?: string; before?: string }>;
+  searchParams: Promise<{ q?: string; channel?: string; status?: string; before?: string; day?: string; hour?: string; from?: string; to?: string }>;
 }) {
   const [{ slug }, sp] = await Promise.all([params, searchParams]);
   const membership = await getMembership(slug);
@@ -26,15 +34,22 @@ export default async function Conversations({ params, searchParams }: {
   const channel = sp.channel && CHANNEL_LABEL[sp.channel] ? sp.channel : undefined;
   const status = sp.status && STATUS[sp.status] ? sp.status : undefined;
   const base = `/c/${slug}/conversations`;
+  // From a heatmap cell: ?day=1..7 (Mon..Sun) [&hour=0..23] &from&to (local dates).
+  const day = /^[1-7]$/.test(sp.day ?? "") ? Number(sp.day) : undefined;
+  const hour = day && /^([01]?\d|2[0-3])$/.test(sp.hour ?? "") ? Number(sp.hour) : undefined;
+  const isDate = (v?: string) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined);
+  const cell = day && !q ? { day, hour, from: isDate(sp.from) ?? "2000-01-01", to: isDate(sp.to) ?? "2100-01-01" } : undefined;
   const hits = q ? await searchMessages(membership.client_id, q, sp.before) : null;
-  const threads = q ? [] : await listThreads(membership.client_id, { channel, status, before: sp.before });
+  const ids = cell ? await threadsInHour(membership.client_id, cell.from, cell.to, cell.day, cell.hour, sp.before) : undefined;
+  const threads = q ? [] : await listThreads(membership.client_id, { channel, status, before: cell ? undefined : sp.before, ids });
   const filtered = hits && channel ? hits.filter((h) => h.channel === channel) : hits;
   const page = (filtered ?? threads) as { created_at?: string; last_message_at?: string }[];
   const last = page.at(-1);
   const nextBefore = page.length >= (q ? 50 : 40) ? (last?.created_at ?? last?.last_message_at) : undefined;
   const keep = (extra: Record<string, string | undefined>) => {
     const p = new URLSearchParams();
-    for (const [k, v] of Object.entries({ q: q || undefined, channel, status, ...extra })) if (v) p.set(k, v);
+    const fromCell = cell ? { day: String(cell.day), hour: cell.hour?.toString(), from: isDate(sp.from), to: isDate(sp.to) } : {};
+    for (const [k, v] of Object.entries({ q: q || undefined, channel, status, ...fromCell, ...extra })) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `${base}?${s}` : base;
   };
@@ -74,6 +89,14 @@ export default async function Conversations({ params, searchParams }: {
         <button className="h-11 cursor-pointer rounded-md bg-brand px-4 font-semibold text-on-brand">{q ? "Search" : "Apply"}</button>
         {(q || channel || status) && <Link href={base} className="flex h-11 items-center px-2 font-semibold text-ink-muted hover:text-ink">Clear</Link>}
       </form>
+
+      {q && <TrackStep slug={slug} step="search" />}
+      {cell && (
+        <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-brand-soft px-4 py-3">
+          <span>Showing enquiries on <strong>{cellLabel(cell)}</strong>{sp.from && sp.to ? <>, {formatDate(`${cell.from}T12:00:00Z`, tz, "day")} to {formatDate(`${cell.to}T12:00:00Z`, tz, "day")}</> : null}.</span>
+          <Link href={base} className="font-semibold text-brand underline-offset-4 hover:underline">Show all conversations</Link>
+        </p>
+      )}
 
       {hits ? (
         <section className="mt-8" aria-live="polite">

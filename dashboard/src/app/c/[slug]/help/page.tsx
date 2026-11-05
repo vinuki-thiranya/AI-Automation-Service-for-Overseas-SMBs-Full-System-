@@ -1,6 +1,8 @@
 import { FileText, LifeBuoy, PlayCircle } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackStep } from "@/components/onboarding";
 import { getMembership, listResources } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Help" };
@@ -27,8 +29,13 @@ export default async function Help({ params }: { params: Promise<{ slug: string 
 
   return (
     <div className="mx-auto max-w-4xl">
+      <TrackStep slug={slug} step="walkthrough" />
       <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Help</h1>
       <p className="mt-1 text-ink-muted">How your front desk works, and who to ask when something looks wrong.</p>
+      <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <Link href={`/c/${slug}?tour=1`} className="font-semibold text-brand underline-offset-4 hover:underline">Take the dashboard tour again</Link>
+        <span className="text-ink-muted">Press <kbd className="rounded border border-rule bg-surface px-1.5 font-semibold text-ink">?</kbd> anywhere for keyboard shortcuts.</span>
+      </p>
 
       <section className="mt-8" aria-labelledby="walkthrough">
         <h2 id="walkthrough" className="font-bold">{video?.title ?? "Your system walkthrough"}</h2>

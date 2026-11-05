@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getMembership, listDrafts } from "@/lib/data";
 import { formatDate } from "@/lib/format";
-import { DraftCard } from "./draft-card";
+import { TrackStep } from "@/components/onboarding";
+import { ApprovalQueue } from "./approval-queue";
 
 export const metadata: Metadata = { title: "Approvals" };
 
@@ -24,6 +25,7 @@ export default async function Approvals({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="mx-auto max-w-4xl">
+      <TrackStep slug={slug} step="approvals" />
       <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Approvals</h1>
       <p className="mt-1 max-w-2xl text-ink-muted">
         Replies drafted for support emails in {desk}. Nothing is sent until someone approves it. Oldest first.
@@ -35,9 +37,9 @@ export default async function Approvals({ params }: { params: Promise<{ slug: st
           <p className="mt-2 text-ink-muted">New drafts from {desk} appear here as tickets come in. You&apos;ll see a count next to Approvals in the menu.</p>
         </div>
       ) : (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6">
           <p className="text-sm font-semibold text-signal">{pending.length} {pending.length === 1 ? "draft needs" : "drafts need"} a decision</p>
-          {pending.map((d) => <DraftCard key={d.id} slug={slug} draft={d} received={formatDate(d.created_at, tz, "dayTime")} />)}
+          <ApprovalQueue slug={slug} drafts={pending.map((d) => ({ draft: d, received: formatDate(d.created_at, tz, "dayTime") }))} />
         </div>
       )}
 

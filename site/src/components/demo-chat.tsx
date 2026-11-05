@@ -17,7 +17,7 @@ export function DemoChat({ facts }: { facts: DemoFacts }) {
   const [draft, setDraft] = useState("");
   const [asked, setAsked] = useState<string[]>([]);
   const nextId = useRef(1);
-  const log = useRef<HTMLOListElement>(null);
+  const log = useRef<HTMLDivElement>(null);
   const inputId = useId();
 
   // Keep the newest message in view inside the chat, without scrolling the page.
@@ -79,7 +79,8 @@ export function DemoChat({ facts }: { facts: DemoFacts }) {
         </button>
       </div>
 
-      <ol ref={log} role="log" aria-live="polite" aria-label="Demo conversation" className="h-[22rem] space-y-2.5 overflow-y-auto overscroll-contain px-4 py-4">
+      <div ref={log} role="log" aria-live="polite" aria-label="Demo conversation" className="h-[22rem] overflow-y-auto overscroll-contain px-4 py-4">
+      <ol className="space-y-2.5">
         {turns.map((t) =>
           t.from === "note" ? (
             <li key={t.id} className="chat-in text-center text-sm text-ink-muted">{t.text}</li>
@@ -100,6 +101,7 @@ export function DemoChat({ facts }: { facts: DemoFacts }) {
           </li>
         )}
       </ol>
+      </div>
 
       <div className="border-t border-rule px-4 pt-3 pb-4">
         {(lastOffer || booked) && (

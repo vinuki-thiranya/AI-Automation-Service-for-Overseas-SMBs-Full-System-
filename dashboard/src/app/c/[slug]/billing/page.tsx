@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { TrackStep } from "@/components/onboarding";
 import { getMembership, listInvoices } from "@/lib/data";
 import { formatDate, formatMoney } from "@/lib/format";
 
@@ -26,6 +27,7 @@ export default async function Billing({ params }: { params: Promise<{ slug: stri
 
   return (
     <div className="mx-auto max-w-4xl">
+      <TrackStep slug={slug} step="billing" />
       <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Billing</h1>
       <p className="mt-1 max-w-2xl text-ink-muted">
         Invoices for your setup, care plan and usage. Usage is passed through at cost plus 20%, and you can ask for the raw provider invoices any time.
