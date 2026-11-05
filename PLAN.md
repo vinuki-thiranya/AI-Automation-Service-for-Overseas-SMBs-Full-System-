@@ -311,3 +311,60 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 - **Privacy policy legal review.** `/privacy` is written to match what the system actually does, but it is a draft. Have a lawyer in each market review it (Australian Privacy Act / APPs, UK GDPR, US state laws) before it goes live. Meta business verification and the Google OAuth consent screen both need it live on the real domain.
 - Hosting for both apps (Vercel Hobby is non-commercial only), `NEXT_PUBLIC_SITE_URL`, and a custom SMTP sender for magic links (Supabase's free sender is a few emails per hour).
 - Search Console and the backlink list in `docs/marketing/seo.md`, on launch day.
+
+**Redesign and interaction pass (2026-11-05, after your review)**
+- **New look:** "Bright & friendly" (teal, marigold, mint, night; Bricolage Grotesque + Figtree), and the "N thread" logo. Details are in `design-system/nuvadesk/MASTER.md` v2.
+- **Website:**
+  - a try-it demo chat, scripted from the demo clinic's real config and FAQ, with 9 unit tests
+  - a missed-calls calculator, using the visitor's own numbers and labelled as an estimate
+  - smoother FAQ and menus
+- **Dashboard:**
+  - a 4-step tour and a getting-started checklist
+  - "What is this?" on every KPI
+  - heatmap cells open their conversations (new RPC `threads_in_hour`, with an RLS test)
+  - a conversation preview drawer
+  - approvals with a 5-second Undo and J/K/A/E/R shortcuts
+  - a Ctrl+K command palette, and `?` for shortcuts
+- **Checks:** CI stayed green with Lighthouse ≥ 95 on every sample page. Each flow was checked in a real browser: Undo leaves the draft pending, and a heatmap cell lists exactly its own conversations.
+- **Design skills:** frontend-design and UI UX Pro Max are installed at user level (`~/.claude/skills`), so they load in every session.
+
+---
+
+## 11. Phase 4: launch-ready, free (planned 2026-11-05, not started)
+
+**Goal:** everything that can be done before the first client without spending money, so that when a clinic says yes, the only remaining steps are the paid ones in §12.
+
+| # | Work | Output | Done when |
+|---|---|---|---|
+| 4.1 | Telegram alerts (deferred from Phase 2) | Bot + alerts group (RUNBOOK §12.5); `TELEGRAM_*` in `.env.local` | `node scripts/check-integrations.ts --write` sends the test message |
+| 4.2 | Your own agency login | `node scripts/invite-user.ts <your email> --agency`, run by you (Claude Code asks you to grant access yourself) | You sign in at /login with a magic link |
+| 4.3 | Intake questionnaire | `docs/delivery/intake.md`: every question needed to fill `client.json` (hours, services and prices, policies, staff, booking system, channels, escalation contacts), in plain language for the clinic | A fictional clinic's answers convert to a `client.json` that validates against the schema |
+| 4.4 | Prompt 6 rehearsal on a fictional client | "Bayside Family Physio" (Brisbane, Package A, Google Calendar): `config/clients/rehearsal-physio.json` from 4.3, `scripts/new-client.ts` against the hosted Supabase (status `demo`), a 50-conversation mock QA run for it, and the dashboard showing it | New client provisioned, QA ≥ 48/50 on mock models, visible to the agency user, and nothing edited in the templates by hand |
+| 4.5 | Delivery templates (what Prompt 6 asks for) | `docs/delivery/`: UAT checklist, staff training outline (60 minutes, matching the website's promise), go-live checklist, change-request template | Used in full in the 4.4 rehearsal |
+| 4.6 | Scope check | `scripts/scope-check.ts`: reads a requirements list (one per line) and the client's packages, and flags anything outside `site/src/content/packages.ts` "includes" as a change request, with the package that would cover it | Flags at least: voice calls, a second location, a custom CRM, and payments, on the rehearsal client (Package A) |
+| 4.7 | Sales kit | `docs/sales/`: one-page scope/proposal template (promised on the site), scripts for the two demo videos (spec §9), outbound message templates for the 20-a-day routine (spec), discovery-call agenda | Recording the demo videos needs only OBS (free) and the running demo |
+| 4.8 | Free accounts that need no card | Cal.com free plan for the contact page (`NEXT_PUBLIC_CAL_LINK`), Loom free for the walkthrough video. Confirm each one asks for no payment card before signing up (PLAN §9) | The contact page shows the booking embed locally |
+
+**Exit criteria**
+- The 4.4 rehearsal runs end to end from the intake answers, and every document in `docs/delivery/` was used in it.
+- Telegram receives the test alert.
+- You can sign in to the dashboard as yourself.
+- CI is green.
+
+---
+
+## 12. Pre-launch gate: the paid steps, in order (do each only when you say)
+
+Costs are from the spec where it gives them; anything else is "check at signup", not a guess.
+
+| # | Step | Why it's needed | Cost |
+|---|---|---|---|
+| 12.1 | Domain: `nuvadesk.ai` (2-year minimum) + `nuvadesk.com`, with DNS on Cloudflare (free) | Website, email, webhooks, Meta and Google verification | Check at the registrar (.ai is priced per 2 years) |
+| 12.2 | VPS (Hetzner CX22/CX32) | Runs n8n, nuvadesk-core, Caddy, Uptime Kuma. The dashboard and website can run here too, as Docker containers, instead of on Vercel (whose free Hobby plan is non-commercial only) | USD 6–15/month (spec §5) |
+| 12.3 | Website and dashboard live | `NEXT_PUBLIC_SITE_URL`, then Search Console and the backlink list (`docs/marketing/seo.md`) | Included in 12.2 if self-hosted |
+| 12.4 | Email: agency mailbox + Resend sender on `send.<domain>` | Magic links beyond Supabase's few-per-hour, the weekly owner report | Mailbox: check at signup. Resend has a free tier (needs the domain) |
+| 12.5 | Live LLM QA: Claude Sonnet 5.5 ≥ 48/50, then the `gpt-6-luna` fallback decision (§8) | Proves the prompt and guards with the real model before a clinic depends on it | About USD 1–3 per QA run (prepaid API credit) |
+| 12.6 | WhatsApp Business number (Meta) + Twilio number for SMS and missed calls, starting with the demo clinic | The live demo number on the website, and the first client's channels | Per number and per message (pass-through to clients). Check at signup |
+| 12.7 | Sentry free tier on both web apps | Errors reach you before the client notices | USD 0 (spec §5) |
+| 12.8 | Backups: Backblaze B2 bucket + restore drill (RUNBOOK §6c) | Restore in under an hour | Small; check at signup |
+| 12.9 | **Rotate the secrets pasted into chat** | The Supabase secret key and the Google OAuth client secret were pasted into a chat on 2026-11-04/05. Replace both before anything goes live: Supabase → Project Settings → API Keys → new secret key → `SUPABASE_SERVICE_ROLE_KEY` → delete the old one; Google Cloud → Auth Platform → Clients → nuvadesk-cli → add a secret → `GOOGLE_OAUTH_CLIENT_SECRET` → delete the old one | Free |

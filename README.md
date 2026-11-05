@@ -13,6 +13,7 @@ Infrastructure, automation templates, the client dashboard and the website for a
 | 1 | Control plane: n8n + Postgres, Caddy TLS, Uptime Kuma, backups to B2, Telegram error alerts | Built, not yet run on a server |
 | 2 | nuvadesk-core (Packages A and B modules), n8n schedules, `scripts/new-client.ts`, web chat widget, 50-conversation QA | Built. 72 tests and 50/50 mock QA pass. Live QA and the live demo number not done yet (see [PLAN.md §7](PLAN.md#7-phase-2-as-built-2026-11-04)) |
 | 3 | Client dashboard (`dashboard/`, Next.js + Supabase magic links) and agency website (`site/`, Next.js + MDX blog + SEO) | Built and running locally against a free Supabase project. Not deployed (hosting and domain wait for the pre-launch gate, see [PLAN.md §10](PLAN.md#10-phase-3-as-built-2026-11-05)) |
+| 4 | Launch-ready, free: Telegram alerts, your login, intake questionnaire, a full Prompt 6 rehearsal on a fictional clinic, delivery and sales templates, scope check | Planned ([PLAN.md §11](PLAN.md#11-phase-4-launch-ready-free-planned-2026-11-05-not-started)). Paid launch steps are listed in §12 and wait for your go-ahead |
 
 ## Quick start (on the VPS)
 ```bash
