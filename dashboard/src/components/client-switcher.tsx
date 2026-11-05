@@ -9,7 +9,7 @@ export function ClientSwitcher({ current, memberships, agency }: { current: Memb
   const others = memberships.filter((m) => m.slug !== current?.slug);
   const label = current ? (
     <span className="min-w-0">
-      <span className="block truncate font-bold">{current.name}</span>
+      <span className="line-clamp-2 block font-bold leading-snug">{current.name}</span>
       <span className="block text-sm text-ink-muted">{ROLE[current.role]}{current.status === "demo" ? ", demo data" : ""}</span>
     </span>
   ) : (

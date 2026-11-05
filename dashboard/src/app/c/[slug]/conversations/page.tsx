@@ -113,22 +113,20 @@ export default async function Conversations({ params, searchParams }: {
         <ul className="mt-8 divide-y divide-rule border-y border-rule">
           {threads.map((t) => (
             <li key={t.id}>
-              <Link href={`${base}/${t.id}`} className="flex gap-4 px-1 py-4 hover:bg-gumleaf/40 sm:px-3">
-                <div className="min-w-0 flex-1">
-                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-semibold">{t.contact?.name ?? t.contact?.phone ?? "Unknown contact"}</span>
-                    <span className="text-sm text-ink-muted">{CHANNEL_LABEL[t.channel] ?? t.channel}</span>
-                    {t.openEscalation && <span className="rounded-full bg-signal-wash px-2 py-0.5 text-xs font-bold text-signal">Waiting for staff</span>}
-                  </p>
+              <Link href={`${base}/${t.id}`} className="block px-1 py-4 hover:bg-gumleaf/40 sm:px-3">
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-semibold">{t.contact?.name ?? t.contact?.phone ?? "Unknown contact"}</span>
+                  <span className="text-sm text-ink-muted">{CHANNEL_LABEL[t.channel] ?? t.channel}</span>
+                  {t.openEscalation && <span className="rounded-full bg-signal-wash px-2 py-0.5 text-xs font-bold text-signal">Waiting for staff</span>}
+                  <span className="tabular ml-auto text-sm text-ink-muted">{formatDate(t.last_message_at, tz, "dayTime")}</span>
+                </p>
+                <div className="mt-1 flex items-start gap-3">
                   {t.preview && (
-                    <p className="mt-1 truncate text-ink-muted">
+                    <p className="line-clamp-2 min-w-0 flex-1 text-ink-muted sm:line-clamp-1">
                       <span className="text-ink">{AUTHOR[t.previewAuthor ?? ""] ?? ""}:</span> {t.preview}
                     </p>
                   )}
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="tabular text-sm text-ink-muted">{formatDate(t.last_message_at, tz, "dayTime")}</p>
-                  <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS[t.status]?.className ?? ""}`}>{STATUS[t.status]?.label ?? t.status}</p>
+                  <span className={`ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS[t.status]?.className ?? ""}`}>{STATUS[t.status]?.label ?? t.status}</span>
                 </div>
               </Link>
             </li>

@@ -1,10 +1,10 @@
 // Reporting ranges, computed in the client's timezone so "last 7 days" means the clinic's days.
 export type RangeKey = "7d" | "30d" | "90d" | "mtd";
-export const RANGES: { key: RangeKey; label: string }[] = [
-  { key: "7d", label: "Last 7 days" },
-  { key: "30d", label: "Last 30 days" },
-  { key: "90d", label: "Last 90 days" },
-  { key: "mtd", label: "This month" },
+export const RANGES: { key: RangeKey; label: string; short: string }[] = [
+  { key: "7d", label: "Last 7 days", short: "7 days" },
+  { key: "30d", label: "Last 30 days", short: "30 days" },
+  { key: "90d", label: "Last 90 days", short: "90 days" },
+  { key: "mtd", label: "This month", short: "Month" },
 ];
 
 export interface Range {
