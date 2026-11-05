@@ -18,13 +18,15 @@ v1 was eucalyptus and paper with Atkinson Hyperlegible Next. It read as calm but
 
 ## Logo
 
-**Night bubble** (`design-system/nuvadesk/logo.svg`, chosen from three options on 2026-11-05):
-- **Shape:** a chat bubble with a crescent moon cut into it, meaning the clinic is closed and the conversation keeps going.
-- **Marigold dot:** the reply that went out.
-- **Where it lives:** in components as `LogoMark` / `Wordmark` (`*/src/components/wordmark.tsx`), drawn with theme variables so it follows light, dark and the night bands.
+**N thread** (`design-system/nuvadesk/logo.svg`). The owner first picked Night bubble, then chose N thread instead on 2026-11-05.
+- **Shape:** a teal rounded tile with a white lowercase "n" drawn as one continuous line, finishing in a marigold tick: a message comes in, and it ends booked.
+- **Small sizes:** it holds up best of the three options at 16 px (browser tab, app icon).
+- **Where it lives:** in components as `LogoMark` / `Wordmark` (`*/src/components/wordmark.tsx`).
+- **Colours:** fixed in every theme: tile `#0B5D6B`, n `#FFFFFF`, tick `#F2B33D`. On dark backgrounds the tile gets a 1 px light-teal edge (`--brand` at 60%) so it stays visible against night. Theme-coloured versions lost the marigold tick on the light-teal dark tile.
 - **Files:** favicon `src/app/icon.svg` and the 180 px `apple-icon.png`, in both apps.
 - **Wordmark:** "Nuvadesk" in Bricolage Grotesque 700, -2.5% tracking, next to the mark.
-- **Sizes:** don't use the mark below 16 px. Keep clear space of half the mark's width around the lockup.
+- **Sizes:** don't use the mark below 16 px. Keep clear space of a quarter of the mark's width around the lockup.
+- **Tick colour:** the tick is always marigold, the same colour as the "booked" moment in the product.
 
 ## Colour
 
@@ -54,7 +56,7 @@ All text/background pairs were checked with a WCAG contrast script (2026-11-05).
 | `grade-hot` / `grade-warm` / `grade-cold` | `#00505A` / `#008E88` / `#6CC4BC` | `#9BE3DC` / `#3DB5AE` / `#1B6F6D` | Ordinal, one hue, monotone, light end ≥ 2:1. Pass. |
 
 **Rules**
-- **No raw hex in components.** Use the role tokens (`brand`, `brand-soft`, `highlight`, `night`, …). The only exceptions are generated images (`opengraph-image.tsx`), which can't read CSS variables, and the static favicons.
+- **No raw hex in components.** Use the role tokens (`brand`, `brand-soft`, `highlight`, `night`, …). The only exceptions are the logo, whose colours are fixed, generated images (`opengraph-image.tsx`), which can't read CSS variables, and the static favicons.
 - **One colour story in charts:** teal for business hours, indigo for after hours. Lead grades use one hue at three strengths, always labelled.
 - **Ration marigold and amber.** Marigold means something got booked; amber means a person has to act. Neither is decoration.
 

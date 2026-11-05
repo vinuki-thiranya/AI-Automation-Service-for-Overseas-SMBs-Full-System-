@@ -11,7 +11,6 @@ const NIGHT = "#10243a";
 const INK = "#eaf1f2";
 const MUTED = "#a9bac3";
 const BRAND = "#5cc3c9";
-const ON_BRAND = "#062a30";
 const MARIGOLD = "#f5c25b";
 
 export default function Image() {
@@ -20,9 +19,9 @@ export default function Image() {
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: NIGHT, color: INK }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 40, fontWeight: 700, letterSpacing: -1 }}>
           <svg viewBox="0 0 32 32" width="60" height="60">
-            <path d="M9 3.5h14a6.5 6.5 0 0 1 6.5 6.5v8a6.5 6.5 0 0 1-6.5 6.5H13l-6.2 4.6a.8.8 0 0 1-1.3-.7l.7-4.2A6.5 6.5 0 0 1 2.5 18v-8A6.5 6.5 0 0 1 9 3.5z" fill={BRAND} />
-            <path d="M17.6 8.2a6 6 0 1 0 4.9 9.3 5 5 0 1 1-4.9-9.3z" fill={ON_BRAND} />
-            <circle cx="24.2" cy="9.4" r="2.6" fill={MARIGOLD} />
+            <rect x="1.5" y="1.5" width="29" height="29" rx="8.5" fill="#0b5d6b" stroke={BRAND} strokeOpacity="0.6" strokeWidth="1" />
+            <path d="M9.5 23.5v-8.2a6.5 6.5 0 0 1 13 0v3.2" fill="none" stroke="#ffffff" strokeWidth="3.6" strokeLinecap="round" />
+            <path d="M18.6 21.2l3.6 3.4 5.6-7.4" fill="none" stroke={MARIGOLD} strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           Nuvadesk
         </div>

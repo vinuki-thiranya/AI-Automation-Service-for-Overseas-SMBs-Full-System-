@@ -1,11 +1,12 @@
-// The "Night bubble" logo (design-system/nuvadesk/logo.svg) in theme colours, so it follows light and
-// after-hours (dark): a chat bubble with a crescent moon, and the marigold reply dot.
+// The "N thread" logo (design-system/nuvadesk/logo.svg): a lowercase n drawn as one line that finishes in a
+// marigold tick (message in, booked). Fixed brand colours in every theme, like the favicon; on dark
+// backgrounds the tile picks up a light-teal edge (--brand) so it doesn't sink into the night colour.
 export function LogoMark({ size = 26 }: { size?: number }) {
   return (
     <svg viewBox="0 0 32 32" width={size} height={size} aria-hidden="true" className="shrink-0">
-      <path d="M9 3.5h14a6.5 6.5 0 0 1 6.5 6.5v8a6.5 6.5 0 0 1-6.5 6.5H13l-6.2 4.6a.8.8 0 0 1-1.3-.7l.7-4.2A6.5 6.5 0 0 1 2.5 18v-8A6.5 6.5 0 0 1 9 3.5z" fill="var(--brand)" />
-      <path d="M17.6 8.2a6 6 0 1 0 4.9 9.3 5 5 0 1 1-4.9-9.3z" fill="var(--on-brand)" />
-      <circle cx="24.2" cy="9.4" r="2.6" fill="var(--highlight)" />
+      <rect x="1.5" y="1.5" width="29" height="29" rx="8.5" fill="#0b5d6b" stroke="var(--brand)" strokeOpacity="0.6" strokeWidth="1" />
+      <path d="M9.5 23.5v-8.2a6.5 6.5 0 0 1 13 0v3.2" fill="none" stroke="#ffffff" strokeWidth="3.6" strokeLinecap="round" />
+      <path d="M18.6 21.2l3.6 3.4 5.6-7.4" fill="none" stroke="#f2b33d" strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
