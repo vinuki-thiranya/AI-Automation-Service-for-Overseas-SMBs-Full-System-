@@ -1,6 +1,7 @@
 # Lead qualification (spec §4.4) and missed-call text-back (spec §4.1).
 - id: lead-form-hot
   title: Web-form lead answers the questions and scores hot
+  packages: [B]
   customer: "+61422222222"
   turns:
     - lead_form: { name: "Priya Shah", source: "web_form", consent_marketing: true }
@@ -13,6 +14,7 @@
 
 - id: lead-form-warm-nurture
   title: Warm lead with consent gets the first nurture message the next day
+  packages: [B]
   customer: "+61433333333"
   turns:
     - lead_form: { name: "Sam Lee", consent_marketing: true }
@@ -23,10 +25,11 @@
       expect: { lead_grade: warm, lead_status: nurturing }
     - advance_minutes: 1445
       tick: true
-      expect: { sent_to_customer_matches: "Hi Sam, it's Harbourside Dental" }
+      expect: { sent_to_customer_matches: "Hi Sam, it's {{re:clinic}}" }
 
 - id: lead-form-cold
   title: Cold lead is archived politely
+  packages: [B]
   customer: "+61444444444"
   turns:
     - lead_form: { name: "Kim", consent_marketing: false }
@@ -38,6 +41,7 @@
 
 - id: lead-chat-interest
   title: Chat enquiry without a booking request starts qualification
+  packages: [B]
   turns:
     - user: "I'm thinking about Invisalign, just after some info for now"
       expect: { tools: [create_lead], no_tools: [book_appointment] }

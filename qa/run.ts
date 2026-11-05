@@ -7,6 +7,11 @@
 //
 // Everything except the model runs in memory: fake calendar, captured messages, no real sends.
 // `expect` is checked in both modes, `expect_mock` only with mock models, `rubric` only live (Claude judge).
+//
+// The cases are for a vertical, not one clinic: `--config` picks the clinic (default: the demo clinic), and
+// clinic facts in the cases are tokens filled from its client.json (see clinicTokens), so a new client built
+// from the template runs the same 50 conversations. A case with `packages: [B]` is skipped for a client
+// without that package, and the pass mark counts only the cases that apply.
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +22,7 @@ import { DateTime } from "luxon";
 import YAML from "yaml";
 import { z } from "zod";
 import { readClientConfigFile, type ClientConfig } from "../core/src/config/index.ts";
+import { hoursSummary } from "../core/src/hours.ts";
 import { unknownPrices } from "../core/src/engine/conversation.ts";
 import { handleLeadIntake, handleMissedCall, type LeadIntake } from "../core/src/ingest/handlers.ts";
 import { runTick } from "../core/src/jobs.ts";
@@ -79,6 +85,7 @@ interface Turn {
 interface Conversation {
   id: string;
   title: string;
+  packages?: string[];                           // skipped unless the client has all of these
   channel?: "sms" | "whatsapp" | "webchat";
   customer?: string;
   at?: string;                                   // local time at the clinic, e.g. 2026-11-10T21:00
@@ -133,11 +140,86 @@ function deepMerge<T>(target: T, patch: Record<string, unknown>): T {
   return target;
 }
 
-function loadConversations(): Conversation[] {
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const WEEK = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const STREET = /\d+[A-Za-z]?\s+([A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*)*\s+(?:Street|St|Road|Rd|Avenue|Ave|Parade|Pde|Lane|Drive|Dr|Terrace|Tce|Highway|Hwy|Boulevard|Way|Place|Pl|Crescent|Cres))\b/;
+
+/**
+ * Clinic facts the cases may use, from client.json. `{{name}}` inserts the text; `{{re:name}}` inserts it
+ * regex-escaped (for reply_matches and the like).
+ *   clinic            the clinic name, without " (demo)" or " (rehearsal)"
+ *   price:<service>   the listed price of a service id, e.g. price:check-up-clean → 220
+ *   street            the street in business.address, e.g. "Example Street"
+ *   parking_start     the first three words of business.parking
+ *   hours:<day>       the opening-hours phrase covering that day, as the assistant says it, e.g. "Sat 9am–1pm"
+ *   hours_all         the whole week, as the assistant says it
+ *   new_patient_cutoff  booking.new_patient_cutoff, e.g. 16:00
+ *   emergency_text    assistant.after_hours.emergency_text
+ *   payment           business.policies.payment
+ */
+function clinicTokens(config: ClientConfig): (token: string) => string {
+  const b = config.business;
+  const summary = hoursSummary(config).split("; ");
+  return (token) => {
+    const [name, arg] = token.split(":") as [string, string | undefined];
+    if (name === "clinic") return config.name.replace(/\s*\((demo|rehearsal)\)\s*$/i, "");
+    if (name === "price" && arg) {
+      const service = b.services.find((x) => x.id === arg);
+      if (!service?.price) throw new Error(`QA token {{${token}}}: no priced service "${arg}" in ${config.client_id}`);
+      return String(service.price.amount);
+    }
+    if (name === "street") {
+      const street = STREET.exec(b.address)?.[1];
+      if (!street) throw new Error(`QA token {{street}}: can't find a street in "${b.address}"`);
+      return street;
+    }
+    const fixed: Record<string, string | undefined> = {
+      hours_all: summary.join("; "),
+      new_patient_cutoff: config.booking?.new_patient_cutoff,
+      emergency_text: config.assistant.after_hours?.emergency_text,
+      payment: b.policies?.payment,
+    };
+    if (name in fixed) {
+      const v = fixed[name];
+      if (!v) throw new Error(`QA token {{${token}}}: not set in ${config.client_id}`);
+      return v;
+    }
+    if (name === "parking_start") {
+      if (!b.parking) throw new Error(`QA token {{parking_start}}: ${config.client_id} has no business.parking`);
+      return b.parking.split(/\s+/).slice(0, 3).join(" ");
+    }
+    if (name === "hours" && arg && WEEK.includes(arg)) {
+      const day = WEEK.indexOf(arg);
+      const part = summary.find((p) => {
+        const m = /^(\w{3})(?:–(\w{3}))? /.exec(p);
+        if (!m) return false;
+        const from = WEEK.indexOf(m[1]!.toLowerCase());
+        const to = m[2] ? WEEK.indexOf(m[2].toLowerCase()) : from;
+        return day >= from && day <= to;
+      });
+      if (!part) throw new Error(`QA token {{${token}}}: no hours phrase covers ${arg}`);
+      return part;
+    }
+    throw new Error(`QA token {{${token}}} is not known (see clinicTokens in qa/run.ts)`);
+  };
+}
+
+function fillTokens<T>(value: T, token: (t: string) => string): T {
+  if (typeof value === "string") {
+    return value.replace(/\{\{(re:)?([a-z_]+(?::[a-z0-9-]+)?)\}\}/g, (_m, re: string | undefined, t: string) => (re ? escapeRe(token(t)) : token(t))) as T;
+  }
+  if (Array.isArray(value)) return value.map((v) => fillTokens(v, token)) as T;
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, fillTokens(v, token)])) as T;
+  return value;
+}
+
+function loadConversations(config: ClientConfig): Conversation[] {
   const dir = path.join(here, "conversations", args.vertical!);
+  const token = clinicTokens(config);
   return readdirSync(dir).filter((f) => f.endsWith(".yaml")).sort()
     .flatMap((f) => YAML.parse(readFileSync(path.join(dir, f), "utf8")) as Conversation[])
-    .filter((c) => !args.only || c.id.includes(args.only));
+    .filter((c) => !args.only || c.id.includes(args.only))
+    .map((c) => fillTokens(c, token));
 }
 
 interface TurnSnapshot {
@@ -300,9 +382,13 @@ if (args.live) {
     process.exit(2);
   }
 }
-const conversations = loadConversations();
+const all = loadConversations(baseConfig);
+const hasPackages = (c: Conversation) => (c.packages ?? []).every((p) => (baseConfig.packages as string[]).includes(p));
+const conversations = all.filter(hasPackages);
+const skipped = all.filter((c) => !hasPackages(c));
 const started = Date.now();
 const results = [];
+for (const c of skipped) console.log(`- ${c.id.padEnd(34)} skipped: needs Package ${c.packages!.join(" + ")}`);
 for (const convo of conversations) {
   const r = await runConversation(convo, baseConfig);
   results.push(r);
@@ -315,7 +401,8 @@ const cost = results.reduce((s, r) => s + r.costUsd, 0);
 const mode = args.live ? `live${args.model ? `-${args.model.replace(/[^a-z0-9.-]/gi, "_")}` : ""}` : "mock";
 const required = args.live ? Math.ceil(results.length * 0.96) : results.length;   // live: ≥48/50
 const ok = passed >= required;
-console.log(`\n${passed}/${results.length} passed (${mode}; need ${required}) in ${((Date.now() - started) / 1000).toFixed(1)}s${args.live ? ` · model cost ≈ $${cost.toFixed(3)}` : ""}`);
+const skipNote = skipped.length ? `; ${skipped.length} skipped for packages this client doesn't have` : "";
+console.log(`\n${passed}/${results.length} passed (${mode}; need ${required}${skipNote}) in ${((Date.now() - started) / 1000).toFixed(1)}s${args.live ? ` · model cost ≈ $${cost.toFixed(3)}` : ""}`);
 
 const reportDir = path.join(here, "reports");
 mkdirSync(reportDir, { recursive: true });

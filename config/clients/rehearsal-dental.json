@@ -1,0 +1,329 @@
+{
+  "$schema": "../client.schema.json",
+  "schema_version": 1,
+  "client_id": "rehearsal-dental",
+  "name": "Bayside Family Dental (rehearsal)",
+  "vertical": "dental",
+  "region": "au",
+  "timezone": "Australia/Brisbane",
+  "locale": "en-AU",
+  "status": "demo",
+  "packages": [
+    "A"
+  ],
+  "care_plan": "keep_alive",
+  "business": {
+    "legal_name": "Bayside Family Dental Pty Ltd (fictional)",
+    "address": "Shop 4, 27 Example Parade, Wynnum QLD 4178",
+    "phone": "+61700000000",
+    "email": "hello@example.com",
+    "website": "https://example.com",
+    "google_review_url": "https://example.com/review",
+    "parking": "Free parking behind the shops, entry from Bay Lane. Two accessible bays near the back door.",
+    "hours": {
+      "mon": [
+        {
+          "open": "08:00",
+          "close": "17:30"
+        }
+      ],
+      "tue": [
+        {
+          "open": "08:00",
+          "close": "17:30"
+        }
+      ],
+      "wed": [
+        {
+          "open": "08:00",
+          "close": "17:30"
+        }
+      ],
+      "thu": [
+        {
+          "open": "08:00",
+          "close": "19:00"
+        }
+      ],
+      "fri": [
+        {
+          "open": "08:00",
+          "close": "15:00"
+        }
+      ],
+      "sat": [
+        {
+          "open": "08:30",
+          "close": "12:30"
+        }
+      ],
+      "sun": []
+    },
+    "holidays": [
+      {
+        "date": "2026-12-25",
+        "name": "Christmas Day"
+      },
+      {
+        "date": "2026-12-26",
+        "name": "Boxing Day"
+      },
+      {
+        "date": "2027-01-01",
+        "name": "New Year's Day"
+      },
+      {
+        "date": "2027-01-26",
+        "name": "Australia Day"
+      }
+    ],
+    "services": [
+      {
+        "id": "check-up-clean",
+        "name": "Check-up and clean",
+        "duration_minutes": 45,
+        "price": {
+          "amount": 199,
+          "currency": "AUD"
+        },
+        "price_note": "no gap with most extras cover"
+      },
+      {
+        "id": "new-patient-exam",
+        "name": "New patient exam with x-rays",
+        "duration_minutes": 60,
+        "price": {
+          "amount": 260,
+          "currency": "AUD"
+        }
+      },
+      {
+        "id": "emergency",
+        "name": "Emergency appointment",
+        "duration_minutes": 30,
+        "price": {
+          "amount": 140,
+          "currency": "AUD"
+        },
+        "price_note": "from"
+      },
+      {
+        "id": "whitening-consult",
+        "name": "Teeth whitening consultation",
+        "duration_minutes": 30,
+        "price": {
+          "amount": 0,
+          "currency": "AUD"
+        }
+      },
+      {
+        "id": "invisalign-consult",
+        "name": "Invisalign consultation",
+        "duration_minutes": 45,
+        "price": {
+          "amount": 0,
+          "currency": "AUD"
+        }
+      }
+    ],
+    "policies": {
+      "cancellation": "Please give at least 24 hours' notice so we can offer the time to someone else. Late cancellations may incur a $40 fee.",
+      "cancellation_notice_hours": 24,
+      "payment": "Card, HICAPS on the spot, and Afterpay for treatments over $500.",
+      "insurance": "We claim on the spot with all major health funds via HICAPS. We're not a bulk-billing clinic, except for eligible children under the Child Dental Benefits Schedule."
+    },
+    "staff": [
+      {
+        "name": "Dr Ana Rossi",
+        "role": "Principal dentist",
+        "bio": "Twenty years in family dentistry in the Bayside."
+      },
+      {
+        "name": "Dr Tom Okafor",
+        "role": "Dentist",
+        "bio": "Sees most of our children and anyone who feels nervous."
+      },
+      {
+        "name": "Priya Desai",
+        "role": "Practice manager",
+        "bio": "Bookings, accounts and health-fund questions."
+      }
+    ],
+    "documents": [
+      {
+        "id": "new-patient-form",
+        "name": "New patient form",
+        "url": "https://example.com/forms/new-patient.pdf",
+        "when": "After booking a new patient exam"
+      },
+      {
+        "id": "directions",
+        "name": "Directions and parking",
+        "url": "https://example.com/visit",
+        "when": "When someone asks how to find or park at the clinic"
+      }
+    ],
+    "faq_sources": [
+      {
+        "type": "file",
+        "ref": "config/clients/rehearsal-dental.faq.md"
+      }
+    ]
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "phone_number_id": "REPLACE_WITH_META_PHONE_NUMBER_ID",
+      "display_number": "+61400000010",
+      "credential": "rehearsal-dental/whatsapp",
+      "templates": {
+        "reminder_24h": "appointment_reminder_24h",
+        "reminder_2h": "appointment_reminder_2h",
+        "no_show": "missed_appointment_rebook",
+        "missed_call": "missed_call_text_back",
+        "escalation_alert": "staff_escalation_alert",
+        "lead_followup": "new_enquiry_followup"
+      }
+    },
+    "sms": {
+      "enabled": true,
+      "from_number": "+61400000011",
+      "credential": "rehearsal-dental/twilio"
+    },
+    "webchat": {
+      "enabled": true,
+      "allowed_origins": [
+        "https://example.com"
+      ],
+      "accent_color": "#0E7C86"
+    },
+    "missed_call": {
+      "enabled": true,
+      "provider": "twilio",
+      "text_back_channel": "sms",
+      "text_back_delay_seconds": 10
+    },
+    "email": {
+      "enabled": true,
+      "from_address": "hello@example.com",
+      "credential": "rehearsal-dental/resend"
+    }
+  },
+  "assistant": {
+    "persona_name": "Mia",
+    "tone": "Friendly, calm and brief. Australian English. Plain words, no emojis, at most three short sentences per message.",
+    "disclosure_text": "Hi, I'm Mia, Bayside Family Dental's virtual assistant. I can answer questions and book appointments; a team member can step in any time.",
+    "languages": [
+      "en"
+    ],
+    "forbidden_topics": [
+      "diagnosis or clinical advice about symptoms",
+      "medication or dosage",
+      "prices or discounts not on the price list",
+      "comments on other clinics"
+    ],
+    "extra_rules": [
+      "If someone describes severe pain, swelling or bleeding, offer the next emergency slot and give the emergency text.",
+      "Never confirm a booking until book_appointment returns success."
+    ],
+    "after_hours": {
+      "greeting": "Thanks for messaging Bayside Family Dental. We're closed right now, but I can still book you in or answer questions.",
+      "emergency_text": "For a dental emergency after hours, call 13HEALTH on 13 43 25 84 for advice or, if it's life-threatening, call 000.",
+      "allow_booking": true
+    },
+    "confidence_threshold": 0.7,
+    "max_messages_per_contact_per_hour": 30,
+    "llm": {
+      "primary": {
+        "provider": "anthropic",
+        "model": "claude-sonnet-5-5",
+        "credential": "rehearsal-dental/anthropic",
+        "effort": "low"
+      },
+      "classifier": {
+        "provider": "anthropic",
+        "model": "claude-haiku-5-5",
+        "credential": "rehearsal-dental/anthropic",
+        "effort": "low"
+      },
+      "fallback": {
+        "provider": "openai",
+        "model": "gpt-5-mini",
+        "credential": "rehearsal-dental/openai"
+      },
+      "embeddings": {
+        "provider": "openai",
+        "model": "text-embedding-3-small",
+        "credential": "rehearsal-dental/openai"
+      },
+      "monthly_cap_usd": 40
+    }
+  },
+  "booking": {
+    "adapter": "google_calendar",
+    "credential": "rehearsal-dental/google",
+    "booking_link": "https://example.com/book",
+    "calendars": [
+      {
+        "id": "REPLACE_WITH_CALENDAR_ID_DR_ROSSI",
+        "practitioner": "Dr Ana Rossi"
+      },
+      {
+        "id": "REPLACE_WITH_CALENDAR_ID_DR_OKAFOR",
+        "practitioner": "Dr Tom Okafor"
+      }
+    ],
+    "buffer_minutes": 15,
+    "min_notice_minutes": 120,
+    "max_days_ahead": 60,
+    "new_patient_cutoff": "15:30",
+    "reminders_hours_before": [
+      24,
+      2
+    ],
+    "no_show_followup_minutes": 30,
+    "send_ics": true
+  },
+  "escalation": {
+    "channel": "whatsapp_staff",
+    "staff": [
+      {
+        "name": "Priya Desai",
+        "phone": "+61400000012"
+      },
+      {
+        "name": "Front desk",
+        "phone": "+61400000013"
+      }
+    ],
+    "owner_backup": "+61400000014",
+    "claim_timeout_minutes": 10,
+    "ai_pause_minutes": 120
+  },
+  "reporting": {
+    "owner_emails": [
+      "owner@example.com"
+    ],
+    "daily_digest": true,
+    "weekly_day": "mon",
+    "weekly_time": "07:30",
+    "revenue_per_booking": {
+      "amount": 220,
+      "currency": "AUD"
+    }
+  },
+  "compliance": {
+    "regime": "au_spam_act",
+    "marketing_consent_text": "Reply YES if you'd like occasional tips and offers from Bayside Family Dental. Reply STOP any time to opt out.",
+    "stop_keywords": [
+      "STOP",
+      "UNSUBSCRIBE",
+      "CANCEL",
+      "END",
+      "QUIT"
+    ],
+    "stop_reply": "You're unsubscribed from Bayside Family Dental messages. Reply START to opt back in.",
+    "retention_months": 12,
+    "phi_minimization": true
+  }
+}

@@ -330,7 +330,7 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 
 ---
 
-## 11. Phase 4: launch-ready, free (planned 2026-11-05, not started)
+## 11. Phase 4: launch-ready, free (started 2026-11-05)
 
 **Goal:** everything that can be done before the first client without spending money, so that when a clinic says yes, the only remaining steps are the paid ones in §12.
 
@@ -345,8 +345,22 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 | 4.7 | Sales kit | `docs/sales/`: one-page scope/proposal template (promised on the site), scripts for the two demo videos (spec §9), outbound message templates for the 20-a-day routine (spec), discovery-call agenda | Recording the demo videos needs only OBS (free) and the running demo |
 | 4.8 | Free accounts that need no card | Cal.com free plan for the contact page (`NEXT_PUBLIC_CAL_LINK`), Loom free for the walkthrough video. Confirm each one asks for no payment card before signing up (PLAN §9) | The contact page shows the booking embed locally |
 
+**Status (2026-11-05)**
+| # | Status |
+|---|---|
+| 4.1 Telegram | **Waiting for you:** RUNBOOK §12.5 (about 5 minutes) |
+| 4.2 Your login | **Waiting for you:** run `invite-user.ts` with your email |
+| 4.3 Intake | **Done:** `docs/delivery/intake.md`, each answer mapped to a `client.json` field |
+| 4.4 Rehearsal | **Done:** `docs/delivery/rehearsal/README.md`. Bayside Family Dental (Brisbane, Package A) was provisioned with `new-client.ts --dev` and scored **46/46** on mock QA (4 Package B cases skipped). Fixes it forced: QA cases filled from each client's config instead of Harbourside's facts; package-aware QA; `status: "paused"` now stops all sending (it didn't); `--dev` provisioning for demo clients |
+| 4.5 Delivery templates | **Done:** `docs/delivery/`: UAT checklist, training outline and quick guide, go-live checklist with rollback, change request |
+| 4.6 Scope check | **Done:** `scripts/scope-check.ts` (rules in `core/src/scope.ts`, 5 tests); flags all four planned items on the rehearsal, plus the website redesign |
+| 4.7 Sales kit | **Done:** `docs/sales/`: proposal template, discovery-call run sheet, outbound messages, two demo-video scripts |
+| 4.8 Free accounts | **Waiting for you:** Cal.com and Loom free plans (confirm no card is asked for) |
+
+**Found for later (Phase 5):** a physio test set (50 conversations). The dental set now refuses to run on a physio config instead of passing by accident.
+
 **Exit criteria**
-- The 4.4 rehearsal runs end to end from the intake answers, and every document in `docs/delivery/` was used in it.
+- The 4.4 rehearsal runs end to end from the intake answers, and every document in `docs/delivery/` was used in it. **Met.**
 - Telegram receives the test alert.
 - You can sign in to the dashboard as yourself.
 - CI is green.

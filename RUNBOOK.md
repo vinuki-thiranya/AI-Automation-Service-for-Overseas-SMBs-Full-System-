@@ -185,7 +185,8 @@ Record the date and total time here:
 
 ## 10. Provisioning a client (each deal, build days 0–6)
 
-1. Copy `config/clients/demo-clinic.json` to `config/clients/<client_id>.json` and fill it from the discovery call and access checklist. Run `make validate`.
+1. Before the proposal: run `node scripts/scope-check.ts --packages <letters> requirements.txt` on the discovery-call notes, and price anything it flags (`docs/delivery/change-request.md`).
+   After the deposit: send `docs/delivery/intake.md`. Copy `config/clients/demo-clinic.json` to `config/clients/<client_id>.json` and fill it from the answers (each question names its field). For dental clinics, keep the standard service ids listed in the intake. Run `make validate`. A worked example is in `docs/delivery/rehearsal/`.
 2. Create `config/clients/<client_id>.secrets.json`. It is gitignored; never commit it. Shapes:
    ```json
    {
@@ -208,10 +209,10 @@ Record the date and total time here:
    - Web forms or Zapier: the lead URL.
    - Uptime Kuma: the client health monitor.
 6. QA for this client:
-   - Copy `qa/conversations/dental/` to `qa/conversations/<id>/`.
-   - Adjust service IDs, prices and FAQ answers to the client's.
-   - Run `npm run qa -- --vertical <id> --config config/clients/<id>.json`, then add `--live`.
-   - Hand over to the client for UAT on a test number.
+   - Run `npm run qa -- --config config/clients/<id>.json`, then add `--live`. The vertical's 50 cases fill clinic facts (prices, hours, street, cutoff, emergency text) from the client's config, and skip cases for packages the client hasn't bought. Don't copy or edit the cases per client.
+   - If a case fails because this clinic genuinely works differently, fix the case to use a token (`clinicTokens` in `qa/run.ts`) so every client benefits, not a per-client copy.
+   - Hand over to the client for UAT on a test number with `docs/delivery/uat-checklist.md`; go live with `docs/delivery/go-live-checklist.md`; train with `docs/delivery/training-outline.md`.
+   - Rehearsals and demos (`"status": "demo"`) can be provisioned into the development Supabase project with `--dev`.
 7. Delete the local `*.secrets.json` once Vault has the secrets, or move it to your password manager.
 
 ## 11. Demo clinic go-live checklist (public demo number, spec §9)

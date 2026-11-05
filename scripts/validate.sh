@@ -63,6 +63,8 @@ if [[ -d node_modules ]]; then
   npm run --silent typecheck
   npm test --silent
   npm run --silent qa
+  # The same cases on the rehearsal clinic (different prices, hours, timezone, Package A only): keeps them clinic-agnostic.
+  npm run --silent qa -- --config config/clients/rehearsal-dental.json
   log "dashboard + site: production builds"
   npm run --silent build
   log "site: smoke test of the built pages (sitemap, robots, canonicals, hreflang, JSON-LD)"

@@ -13,6 +13,10 @@ import type { InboundMessage, TelegramUpdate } from "./normalize.ts";
 const THREAD_REUSE_DAYS = 7;
 const turnLock = new KeyedMutex();
 
+/** Paused or offboarded: messages are still recorded (nothing is lost, the dashboard shows them), but nothing
+ *  is sent, so the clinic's own handling takes over. Scheduled jobs already skip these clients. */
+export const isSilenced = (ctx: Ctx) => ctx.client.status === "paused" || ctx.client.status === "offboarded";
+
 export async function resolveContact(ctx: Ctx, channel: Channel, externalId: string, hints: { phone?: string | null; email?: string | null; name?: string | null }): Promise<ContactRow> {
   const { store, client } = ctx;
   let contact = await store.findContactByChannel(client.id, channel, externalId);
@@ -70,6 +74,10 @@ export async function handleInbound(ctx: Ctx, msg: InboundMessage): Promise<Inbo
     if (duplicate) return { duplicate: true, staff: false };
     Object.assign(thread, await ctx.store.updateThread(thread.id, { last_inbound_at: msg.timestamp, last_message_at: ctx.now().toISOString() }));
 
+    if (isSilenced(ctx)) {
+      await ctx.store.audit(ctx.client.id, "core:inbound", "client_paused_no_reply", { thread_id: thread.id, status: ctx.client.status });
+      return { duplicate: false, staff: false };
+    }
     if (!msg.text && msg.attachments.length) {
       // Media without text: acknowledge; document capture is Package C.
       const turn: TurnResult = { replies: [], handledBy: "ignored", escalated: false, toolCalls: [] };
@@ -86,7 +94,7 @@ export async function handleInbound(ctx: Ctx, msg: InboundMessage): Promise<Inbo
 export async function handleMissedCall(ctx: Ctx, params: Record<string, string>): Promise<void> {
   const cfg = ctx.client.config;
   const phone = toE164(params.From);
-  if (!phone || !cfg.channels.missed_call?.enabled) return;
+  if (!phone || !cfg.channels.missed_call?.enabled || isSilenced(ctx)) return;
   const channel: Channel = cfg.channels.missed_call.text_back_channel === "whatsapp" ? "whatsapp" : "sms";
   if (!(await ctx.store.markOnce(ctx.client.id, `missed-call:${params.CallSid ?? `${phone}:${ctx.now().toISOString().slice(0, 16)}`}`))) return;
   const contact = await resolveContact(ctx, channel, channel === "whatsapp" ? phone.slice(1) : phone, { phone });
@@ -133,7 +141,7 @@ export async function handleLeadIntake(ctx: Ctx, input: LeadIntake): Promise<{ l
     ? await startLeadFlow(ctx, thread, contact, { source: input.source ?? "web_form", answers: input.answers, receivedAt })
     : { lead: await ctx.store.insertLead({ client_id: ctx.client.id, contact_id: contact.id, thread_id: thread.id, source: input.source ?? "web_form", received_at: receivedAt }), question: null };
 
-  if (!channel || contact.opted_out_at) return { lead_id: lead.id, responded_via: null };
+  if (!channel || contact.opted_out_at || isSilenced(ctx)) return { lead_id: lead.id, responded_via: null };
   const hello = `Hi ${firstName(contact.name) || "there"}, thanks for your enquiry with ${cfg.name}!`;
   const text = question ? `${hello} A couple of quick questions so we can help. ${question}` : `${hello} How can we help?`;
   const template = channel === "whatsapp" ? { name: cfg.channels.whatsapp!.templates!.lead_followup!, bodyParams: [firstName(contact.name) || "there", cfg.name] } : undefined;

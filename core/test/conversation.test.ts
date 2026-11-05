@@ -97,6 +97,19 @@ describe("compliance and safety", () => {
     expect(start.turn?.handledBy).toBe("start");
   });
 
+  it("a paused client records messages but sends nothing (go-live rollback)", async () => {
+    const h = harness();
+    h.client.status = "paused";
+    const res = await h.receive("whatsapp", CUSTOMER, "Hi, can I book a check-up?");
+    expect(res.turn).toBeUndefined();
+    expect(h.store.messages.map((m) => m.body)).toEqual(["Hi, can I book a check-up?"]);
+    expect(h.channels.sent).toEqual([]);
+    expect(h.store.auditLog.map((a) => a.action)).toContain("client_paused_no_reply");
+    const lead = await handleLeadIntake(h.ctx, { name: "Sam", phone: "+61422222222" });
+    expect(lead.responded_via).toBeNull();
+    expect(h.channels.sent).toEqual([]);
+  });
+
   it("'cancel my appointment' is not an opt-out", async () => {
     const h = harness();
     const res = await h.receive("sms", CUSTOMER, "cancel my appointment");

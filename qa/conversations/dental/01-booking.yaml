@@ -8,13 +8,13 @@
       expect: { tools: [book_appointment], booking: created, booking_service: check-up-clean, disclosure: false }
   rubric: >-
     The assistant offers specific times, then confirms the booked day and time once the booking succeeded.
-    It never claims a booking before it is made and quotes no price other than $220 for a check-up and clean.
+    It never claims a booking before it is made and quotes no price other than ${{price:check-up-clean}} for a check-up and clean.
 
 - id: booking-new-patient-cutoff
-  title: New patient exams only offered before the 4pm cutoff
+  title: New patient exams only offered before the new-patient cutoff
   turns:
     - user: "I'm a new patient, can I book a new patient exam?"
-      expect: { tools: [check_availability], offered_latest_start: "16:00" }
+      expect: { tools: [check_availability], offered_latest_start: "{{new_patient_cutoff}}" }
     - user: "First one is good, I'm Jordan Lee"
       expect: { tools: [book_appointment], booking: created, booking_service: new-patient-exam }
 
@@ -29,7 +29,7 @@
   turns:
     - user: "Any evening appointments after work for a check-up?"
       expect: { tools: [check_availability], offered_part_of_day: evening }
-  rubric: Offers only times at or after 5pm (Wednesday late opening), or says clearly if none are available.
+  rubric: Offers only times at or after 5pm (the clinic's late opening), or says clearly if none are available.
 
 - id: booking-asks-for-name
   title: Asks for the name before booking, then books

@@ -6,6 +6,8 @@
 // --secrets: a gitignored JSON file mapping credential refs to values, e.g.
 //   { "acme-dental/anthropic": "sk-ant-...", "acme-dental/twilio": { "account_sid": "AC...", "auth_token": "..." } }
 // Reads infra/.env when present (SUPABASE_*, CORE_SECRET, DOMAIN, N8N_API_KEY). Idempotent: safe to re-run.
+// --dev: provision into the development Supabase project in .env.local (the one the local dashboard uses)
+//   instead of SUPABASE_<REGION>_*; only for clients with "status": "demo" (rehearsals and demos).
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -25,6 +27,7 @@ const { values: args, positionals } = parseArgs({
     apply: { type: "boolean", default: false },
     "skip-faq": { type: "boolean", default: false },
     "skip-n8n": { type: "boolean", default: false },
+    dev: { type: "boolean", default: false },
   },
 });
 
@@ -105,8 +108,12 @@ if (args.secrets) {
 }
 
 const region = config.region.toUpperCase();
-const supabaseUrl = env(`SUPABASE_${region}_URL`);
-const supabaseKey = env(`SUPABASE_${region}_SERVICE_ROLE_KEY`);
+if (args.dev && config.status !== "demo") {
+  console.error(`✗ --dev is only for demo and rehearsal clients ("status": "demo"); ${id} is "${config.status ?? "staging"}"`);
+  process.exit(1);
+}
+const supabaseUrl = args.dev ? env("NEXT_PUBLIC_SUPABASE_URL") : env(`SUPABASE_${region}_URL`);
+const supabaseKey = args.dev ? env("SUPABASE_SERVICE_ROLE_KEY") : env(`SUPABASE_${region}_SERVICE_ROLE_KEY`);
 const store = supabaseUrl && supabaseKey ? new SupabaseStore(supabaseUrl, supabaseKey) : null;
 if (!store) (args.apply ? error : warn)(`SUPABASE_${region}_URL / _SERVICE_ROLE_KEY not set: can't check Vault or provision`);
 
