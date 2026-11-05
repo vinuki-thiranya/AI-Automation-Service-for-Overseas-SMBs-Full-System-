@@ -32,7 +32,9 @@ if (!CHROME) {
 
 const base = (opt.base ?? (app === "site" ? "http://localhost:3001" : "http://localhost:3000")).replace(/\/$/, "");
 const slug = opt.slug ?? "demo-clinic";
-const PAGES: Record<string, { name: string; path: string; full?: boolean }[]> = {
+// `act` drives the page first (clicks, typing); `element` screenshots one element instead of the page.
+type Shot = { name: string; path: string; full?: boolean; act?: (page: Page) => Promise<void>; element?: string };
+const PAGES: Record<string, Shot[]> = {
   site: [
     { name: "home", path: "/", full: true },
     { name: "packages", path: "/packages", full: true },
@@ -43,6 +45,24 @@ const PAGES: Record<string, { name: string; path: string; full?: boolean }[]> = 
     { name: "contact", path: "/contact" },
     { name: "blog", path: "/blog" },
     { name: "blog-post", path: "/blog/missed-calls-dental-clinic", full: true },
+    {
+      name: "demo-chat", path: "/", element: "section[aria-labelledby=demo]",
+      act: async (page) => {
+        await page.getByRole("button", { name: "How much is a check-up?" }).click();
+        await page.waitForTimeout(1600);
+        await page.getByRole("button", { name: "Book me in tomorrow" }).click();
+        await page.waitForTimeout(1600);
+        await page.getByRole("button", { name: "8:15am" }).click();
+        await page.waitForTimeout(1600);
+      },
+    },
+    {
+      name: "calculator", path: "/", element: "section[aria-labelledby=calculator]",
+      act: async (page) => {
+        await page.getByRole("spinbutton", { name: /miss in a week, exact value/ }).fill("14");
+        await page.waitForTimeout(500);
+      },
+    },
   ],
   dashboard: [
     { name: "login", path: "/login" },
@@ -91,8 +111,10 @@ for (const scheme of schemes) {
       if (app === "dashboard" && !storageState && p.name !== "login") continue;
       const res = await page.goto(`${base}${p.path}`, { waitUntil: "domcontentloaded" });
       await settle(page);
+      if (p.act) await p.act(page);
       const file = path.join(out, `${p.name}.${vp.tag}${schemes.length > 1 ? `.${scheme}` : ""}.png`);
-      await page.screenshot({ path: file, fullPage: Boolean(p.full) });
+      if (p.element) await page.locator(p.element).screenshot({ path: file });
+      else await page.screenshot({ path: file, fullPage: Boolean(p.full) });
       console.log(`${res?.status() ?? "?"}  ${path.relative(REPO_ROOT, file)}`);
     }
     await context.close();

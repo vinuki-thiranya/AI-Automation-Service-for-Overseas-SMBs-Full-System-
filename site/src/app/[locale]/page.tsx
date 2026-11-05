@@ -3,9 +3,10 @@ import Link from "next/link";
 import { DemoSection } from "@/components/demo";
 import { Faq, faqJsonLd } from "@/components/faq";
 import { Hero } from "@/components/hero";
+import { MissedCallsCalculator } from "@/components/missed-calls-calculator";
 import { JsonLd } from "@/components/json-ld";
 import { LOCALE_INFO, alternates, localePath, type Locale } from "@/content/locales";
-import { ALWAYS_INCLUDED, BUNDLE, PACKAGES, usd } from "@/content/packages";
+import { ALWAYS_INCLUDED, BUNDLE, CARE_PLANS, PACKAGES, usd } from "@/content/packages";
 import { VERTICALS } from "@/content/verticals";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -77,6 +78,12 @@ export default async function Home({ params }: Props) {
             </li>
           ))}
         </ol>
+      </section>
+
+      <section aria-labelledby="calculator" className="mx-auto max-w-6xl px-5 pb-16 sm:pb-20">
+        <h2 id="calculator" className="display text-3xl">What missed calls cost your clinic</h2>
+        <p className="mt-3 max-w-2xl text-lg text-ink-muted">Move the sliders to match your week. The numbers are yours, so is the estimate.</p>
+        <div className="mt-8"><MissedCallsCalculator locale={locale} setupUsd={receptionist.price} carePlanUsd={CARE_PLANS[0]!.price} /></div>
       </section>
 
       <section aria-labelledby="pricing" className="border-y border-rule bg-surface">

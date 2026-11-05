@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Faq, faqJsonLd } from "@/components/faq";
 import { JsonLd } from "@/components/json-ld";
+import { MissedCallsCalculator } from "@/components/missed-calls-calculator";
 import { LOCALES, alternates, localePath, siteUrl, type Locale } from "@/content/locales";
 import { ALWAYS_INCLUDED, CARE_PLANS, PACKAGES, TERMS, packageBySlug, usd } from "@/content/packages";
 
@@ -71,6 +72,14 @@ export default async function PackagePage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {p.slug === "receptionist" && (
+        <section aria-labelledby="calculator" className="mx-auto max-w-6xl px-5 pt-16">
+          <h2 id="calculator" className="display text-3xl">What missed calls cost your clinic</h2>
+          <p className="mt-3 max-w-2xl text-lg text-ink-muted">Move the sliders to match your week. The numbers are yours, so is the estimate.</p>
+          <div className="mt-8"><MissedCallsCalculator locale={locale} setupUsd={p.price} carePlanUsd={CARE_PLANS[0].price} /></div>
+        </section>
+      )}
 
       <Faq items={p.faq} heading={`${p.name}: common questions`} />
       <JsonLd data={faqJsonLd(p.faq)} />

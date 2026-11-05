@@ -1,4 +1,4 @@
-import { ChevronDown, Menu } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { localePath, type Locale } from "@/content/locales";
 import { VERTICALS } from "@/content/verticals";
@@ -23,7 +23,7 @@ export function Header({ locale }: { locale: Locale }) {
             <summary className="flex h-11 cursor-pointer list-none items-center gap-1 rounded-md px-3 font-semibold text-ink-muted hover:text-ink [&::-webkit-details-marker]:hidden">
               Who it&apos;s for <ChevronDown size={16} className="transition-transform group-open:rotate-180" aria-hidden="true" />
             </summary>
-            <ul className="absolute top-12 left-0 w-56 rounded-md border border-rule bg-surface p-1 shadow-sm">
+            <ul className="menu-panel absolute top-12 left-0 w-56 rounded-md border border-rule bg-surface p-1 shadow-sm">
               {VERTICALS.map((v) => (
                 <li key={v.slug}><Link href={p(`/for/${v.slug}`)} className="block rounded px-3 py-2.5 hover:bg-brand-soft">{v.name}</Link></li>
               ))}
@@ -37,9 +37,10 @@ export function Header({ locale }: { locale: Locale }) {
           <Link href={p("/contact")} className="hidden h-11 items-center rounded-md bg-brand px-4 font-semibold text-on-brand sm:flex">Book a 20-minute call</Link>
           <details className="group lg:hidden">
             <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-md [&::-webkit-details-marker]:hidden" aria-label="Menu">
-              <Menu size={22} aria-hidden="true" />
+              <Menu size={22} aria-hidden="true" className="group-open:hidden" />
+              <X size={22} aria-hidden="true" className="hidden group-open:block" />
             </summary>
-            <nav aria-label="Mobile" className="absolute inset-x-0 top-16 border-b border-rule bg-paper px-5 pt-2 pb-6 shadow-sm">
+            <nav aria-label="Mobile" className="menu-panel absolute inset-x-0 top-16 border-b border-rule bg-paper px-5 pt-2 pb-6 shadow-sm">
               <p className="pt-2 pb-1 text-sm text-ink-muted">Who it&apos;s for</p>
               <ul>
                 {VERTICALS.map((v) => <li key={v.slug}><Link href={p(`/for/${v.slug}`)} className="block py-3 font-semibold">{v.name}</Link></li>)}
