@@ -297,7 +297,7 @@ Anything that needs money is **deferred** to a pre-launch gate, not worked aroun
 |---|---|
 | RLS: staff of client A cannot read client B | **Passed.** 9 integration tests in `core/test/integration/dashboard.int.test.ts`, green in the CI `supabase` job. They cover cross-client reads, money hidden from staff, scoped search, drafts decided once and only by their own client, and anonymous callers. Also checked by hand in the running dashboard as staff. |
 | Screenshots reviewed | **Done.** You reviewed both apps (2026-11-05) and asked to carry on. Polish after review: the date-range picker fits one row on phones, conversation previews use the full width, and long clinic names wrap. |
-| Lighthouse mobile 95+ | **Accessibility, Best practices and SEO: 100 on all four sample pages.** Performance: first paint 0.9–1.5 s, layout shift 0 and LCP at full marks; the only variable is blocking time. On this laptop, with VS Code and other apps busy, runs on the same unchanged page ranged 66–99, and Lighthouse flagged most runs as on an overloaded host. Medians were 88–95. The authoritative number is the CI `lighthouse` job, which runs on a clean runner and fails under 95. See the CI results for the current figures. |
+| Lighthouse mobile 95+ | **Passed.** CI job `lighthouse` (run 41971476052, clean GitHub runner, median of 3 runs): home, `/packages/receptionist`, `/for/dental` and the missed-calls blog post all score **Performance 99, Accessibility 100, Best practices 100, SEO 100**. The job fails under 95 on every push. On this laptop, runs swing between 66 and 99 because the machine is busy (Lighthouse flags the host as overloaded); accessibility, best practices and SEO were 100 there too. |
 
 **Decisions made while building**
 | Decision | Why |
