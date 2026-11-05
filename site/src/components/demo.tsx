@@ -24,7 +24,7 @@ export function DemoSection() {
           </p>
           {number && (
             <a href={`https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, do you have anything on Saturday?")}`}
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">
+              className="mt-8 inline-flex h-12 items-center gap-2 rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">
               <MessageCircle size={20} aria-hidden="true" /> Message the demo on WhatsApp
             </a>
           )}
@@ -34,7 +34,7 @@ export function DemoSection() {
           <ol className="space-y-2.5">
             {SAMPLE.map((m, i) => (
               <li key={i} className={`flex ${m.from === "ava" ? "justify-end" : "justify-start"}`}>
-                <p className={`max-w-[85%] rounded-xl px-3.5 py-2 ${m.from === "ava" ? "bg-gumleaf" : "bg-paper"}`}>{m.text}</p>
+                <p className={`max-w-[85%] rounded-xl px-3.5 py-2 ${m.from === "ava" ? "bg-brand-soft" : "bg-paper"}`}>{m.text}</p>
               </li>
             ))}
           </ol>

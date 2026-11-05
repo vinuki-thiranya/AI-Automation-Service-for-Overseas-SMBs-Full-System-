@@ -38,7 +38,7 @@ export function Shell({ nav, header, footer, children }: { nav: NavItem[]; heade
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-11 items-center gap-3 rounded-md px-3 font-semibold ${active ? "bg-gumleaf text-ink" : "text-ink-muted hover:bg-gumleaf/60 hover:text-ink"}`}
+                className={`flex h-11 items-center gap-3 rounded-md px-3 font-semibold ${active ? "bg-brand-soft text-ink" : "text-ink-muted hover:bg-brand-soft/60 hover:text-ink"}`}
               >
                 <Icon size={18} aria-hidden="true" />
                 <span className="flex-1">{item.label}</span>

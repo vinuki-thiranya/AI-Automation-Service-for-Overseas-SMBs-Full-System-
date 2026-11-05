@@ -19,14 +19,14 @@ export function Hero({ headline, lede, ctaHref, pricingHref }: { headline: strin
         <h1 className="display text-4xl sm:text-5xl">{headline}</h1>
         <p className="mt-6 max-w-xl text-lg text-ink-muted sm:text-xl">{lede}</p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link href={ctaHref} className="flex h-12 items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">Book a 20-minute call</Link>
+          <Link href={ctaHref} className="flex h-12 items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">Book a 20-minute call</Link>
           <Link href={pricingHref} className="flex h-12 items-center rounded-md px-4 text-lg font-semibold text-ink underline-offset-4 hover:underline">See pricing</Link>
         </div>
         <p className="mt-4 text-sm text-ink-muted">Fixed price. Live in 14 days. Cancel the care plan any time after 3 months.</p>
       </div>
 
       <HeroVideo>
-        <figure className="after-hours rounded-2xl p-4 shadow-[0_24px_60px_-28px_rgb(19_27_46/0.55)] sm:p-6" aria-label="Example: a patient books at 9:47 pm by WhatsApp">
+        <figure className="after-hours rounded-2xl p-4 shadow-[0_24px_60px_-28px_color-mix(in_srgb,var(--night)_65%,transparent)] sm:p-6" aria-label="Example: a patient books at 9:47 pm by WhatsApp">
           <p className="flex items-center justify-between text-sm text-ink-muted">
             <span className="font-semibold text-ink">Harbourside Dental</span>
             <span>Clinic closed, assistant on</span>
@@ -34,7 +34,7 @@ export function Hero({ headline, lede, ctaHref, pricingHref }: { headline: strin
           <ol className="mt-4 space-y-2.5">
             {TURNS.map((t, i) => (
               <li key={i} className={`arrive flex ${t.from === "ava" ? "justify-end" : "justify-start"}`} style={{ animationDelay: `${250 + i * 520}ms` }}>
-                <p className={`max-w-[85%] rounded-xl px-3.5 py-2 ${t.from === "ava" ? "bg-gumleaf" : "bg-surface"}`}>
+                <p className={`max-w-[85%] rounded-xl px-3.5 py-2 ${t.from === "ava" ? "bg-brand-soft" : "bg-surface"}`}>
                   {t.text}
                   <span className="mt-0.5 block text-right text-xs text-ink-muted">{t.at}</span>
                 </p>

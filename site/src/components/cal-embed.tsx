@@ -9,9 +9,9 @@ export function CalEmbed({ link }: { link: string }) {
   if (!open) {
     return (
       <div className="rounded-xl border border-rule bg-surface p-8">
-        <h2 className="text-2xl font-bold">Pick a time</h2>
+        <h2 className="font-display text-2xl font-bold">Pick a time</h2>
         <p className="mt-3 text-ink-muted">Opens our booking calendar (Cal.com) right here. Times show in your time zone.</p>
-        <button type="button" onClick={() => setOpen(true)} className="mt-6 inline-flex h-12 cursor-pointer items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">
+        <button type="button" onClick={() => setOpen(true)} className="mt-6 inline-flex h-12 cursor-pointer items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">
           Show available times
         </button>
       </div>

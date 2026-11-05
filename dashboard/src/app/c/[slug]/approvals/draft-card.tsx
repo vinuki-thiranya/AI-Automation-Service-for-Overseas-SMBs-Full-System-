@@ -56,7 +56,7 @@ export function DraftCard({ slug, draft, received }: { slug: string; draft: Draf
               <textarea id={`${ids}-body`} value={body} onChange={(e) => setBody(e.target.value)} rows={6}
                 className="mt-1 w-full rounded-md border border-rule bg-paper p-3 leading-relaxed" />
             ) : (
-              <p className="mt-1 rounded-md bg-gumleaf p-3 whitespace-pre-wrap">{body}</p>
+              <p className="mt-1 rounded-md bg-brand-soft p-3 whitespace-pre-wrap">{body}</p>
             )}
           </section>
         </div>
@@ -70,16 +70,16 @@ export function DraftCard({ slug, draft, received }: { slug: string; draft: Draf
 
         <footer className="mt-4 flex flex-wrap items-center gap-2">
           {result && (
-            <p role="status" className={`mr-auto text-sm font-semibold ${result.tone === "error" ? "text-danger" : "text-eucalyptus"}`}>{result.text}</p>
+            <p role="status" className={`mr-auto text-sm font-semibold ${result.tone === "error" ? "text-danger" : "text-brand"}`}>{result.text}</p>
           )}
           {!decided && mode !== "reject" && (
             <>
               {mode === "view"
-                ? <button type="button" onClick={() => setMode("edit")} className="h-11 cursor-pointer rounded-md border border-rule px-4 font-semibold hover:bg-gumleaf/50">Edit</button>
+                ? <button type="button" onClick={() => setMode("edit")} className="h-11 cursor-pointer rounded-md border border-rule px-4 font-semibold hover:bg-brand-soft/50">Edit</button>
                 : <button type="button" onClick={() => { setBody(draft.draft_body); setMode("view"); }} className="h-11 cursor-pointer rounded-md px-4 font-semibold text-ink-muted hover:text-ink">Undo edits</button>}
-              <button type="button" onClick={() => setMode("reject")} className="h-11 cursor-pointer rounded-md border border-rule px-4 font-semibold hover:bg-gumleaf/50">Reject</button>
+              <button type="button" onClick={() => setMode("reject")} className="h-11 cursor-pointer rounded-md border border-rule px-4 font-semibold hover:bg-brand-soft/50">Reject</button>
               <button type="button" disabled={pending || !body.trim()} onClick={() => decide("approve")}
-                className="h-11 cursor-pointer rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus disabled:cursor-wait disabled:opacity-70">
+                className="h-11 cursor-pointer rounded-md bg-brand px-4 font-semibold text-on-brand disabled:cursor-wait disabled:opacity-70">
                 {pending ? "Approving…" : mode === "edit" ? "Approve edited reply" : "Approve"}
               </button>
             </>

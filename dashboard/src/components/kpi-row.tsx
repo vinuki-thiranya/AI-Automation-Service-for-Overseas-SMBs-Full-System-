@@ -35,9 +35,9 @@ export function KpiRow({ items }: { items: Kpi[] }) {
       {items.map((k) => (
         <div key={k.label} className="border-rule px-1 py-5 sm:px-4 [&:not(:last-child)]:border-b sm:[&:not(:last-child)]:border-b-0 sm:border-r sm:last:border-r-0 sm:[&:nth-child(3n)]:border-r-0 xl:[&:nth-child(3n)]:border-r xl:last:border-r-0">
           <dt className="text-sm text-ink-muted">{k.label}</dt>
-          <dd className="tabular mt-1 text-2xl font-bold tracking-[-0.01em]"><Figure kpi={k} /></dd>
+          <dd className="font-display tabular mt-1 text-2xl font-bold tracking-[-0.01em]"><Figure kpi={k} /></dd>
           {k.delta ? (
-            <dd className={`mt-1 text-sm font-semibold ${k.delta.direction === "flat" ? "text-ink-muted" : k.delta.good ? "text-eucalyptus" : "text-signal"}`}>
+            <dd className={`mt-1 text-sm font-semibold ${k.delta.direction === "flat" ? "text-ink-muted" : k.delta.good ? "text-brand" : "text-signal"}`}>
               {k.delta.text} <span className="font-normal text-ink-muted">vs previous</span>
             </dd>
           ) : k.note ? <dd className="mt-1 text-sm text-ink-muted">{k.note}</dd> : null}

@@ -1,26 +1,28 @@
 @import "tailwindcss";
 
-/* Tokens from design-system/nuvadesk/MASTER.md. Day palette by default; "after hours" (dark) follows the
-   system unless the user picked a theme (data-theme on <html>, set from a cookie on the server). */
+/* Tokens from design-system/nuvadesk/MASTER.md ("Bright & friendly"). Day palette by default; "after hours"
+   (dark) follows the system unless the user picked a theme (data-theme on <html>, set from a cookie). */
 :root {
-  --paper: #f6f7f4;
+  --paper: #fbfbf8;
   --surface: #ffffff;
-  --ink: #18231f;
-  --ink-muted: #55635d;
-  --rule: #dce3de;
-  --eucalyptus: #2f6b5a;
-  --on-eucalyptus: #ffffff;
-  --gumleaf: #e2eee8;
-  --dusk: #33407a;
-  --signal: #9a5b00;
-  --signal-wash: #fbf1e1;
+  --ink: #14252b;
+  --ink-muted: #4f6168;
+  --rule: #e1e7e6;
+  --brand: #0b5d6b;
+  --on-brand: #ffffff;
+  --brand-soft: #d8f1e8;
+  --highlight: #f2b33d;
+  --on-highlight: #2a1e00;
+  --night: #10243a;
+  --signal: #8a4b00;
+  --signal-wash: #fdf0d5;
   --danger: #b42318;
-  /* Chart series, validated with the dataviz checks (contrast, chroma, CVD) against --surface */
-  --series-business: #007c60;
-  --series-after: #454ead;
-  --grade-hot: #00503c;
-  --grade-warm: #008668;
-  --grade-cold: #66b79c;
+  /* Chart series, validated with the dataviz checks (band, chroma, CVD, contrast) against --surface */
+  --series-business: #008e88;
+  --series-after: #4549b0;
+  --grade-hot: #00505a;
+  --grade-warm: #008e88;
+  --grade-cold: #6cc4bc;
   color-scheme: light;
 }
 
@@ -28,45 +30,49 @@
    (and for .after-hours panels, which are always dark). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #131b2e;
-    --surface: #1a2440;
-    --ink: #e9eef5;
-    --ink-muted: #a9b4c6;
-    --rule: #2b3757;
-    --eucalyptus: #7fc4ae;
-    --on-eucalyptus: #0f1a17;
-    --gumleaf: #20393a;
-    --dusk: #aeb8f2;
-    --signal: #f2b661;
-    --signal-wash: #33301f;
+    --paper: #0e1c2b;
+    --surface: #15283b;
+    --ink: #eaf1f2;
+    --ink-muted: #a6b6bc;
+    --rule: #24394d;
+    --brand: #5cc3c9;
+    --on-brand: #062a30;
+    --brand-soft: #133a40;
+    --highlight: #f5c25b;
+    --on-highlight: #2a1e00;
+    --night: #0a1622;
+    --signal: #f5c25b;
+    --signal-wash: #2e2716;
     --danger: #ff8a80;
-    --series-business: #33a182;
-    --series-after: #7173d7;
-    --grade-hot: #9be3c9;
-    --grade-warm: #42ae8e;
-    --grade-cold: #1b735b;
+    --series-business: #009b95;
+    --series-after: #7577e3;
+    --grade-hot: #9be3dc;
+    --grade-warm: #3db5ae;
+    --grade-cold: #1b6f6d;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"],
 .after-hours {
-  --paper: #131b2e;
-  --surface: #1a2440;
-  --ink: #e9eef5;
-  --ink-muted: #a9b4c6;
-  --rule: #2b3757;
-  --eucalyptus: #7fc4ae;
-  --on-eucalyptus: #0f1a17;
-  --gumleaf: #20393a;
-  --dusk: #aeb8f2;
-  --signal: #f2b661;
-  --signal-wash: #33301f;
+  --paper: #0e1c2b;
+  --surface: #15283b;
+  --ink: #eaf1f2;
+  --ink-muted: #a6b6bc;
+  --rule: #24394d;
+  --brand: #5cc3c9;
+  --on-brand: #062a30;
+  --brand-soft: #133a40;
+  --highlight: #f5c25b;
+  --on-highlight: #2a1e00;
+  --night: #0a1622;
+  --signal: #f5c25b;
+  --signal-wash: #2e2716;
   --danger: #ff8a80;
-  --series-business: #33a182;
-  --series-after: #7173d7;
-  --grade-hot: #9be3c9;
-  --grade-warm: #42ae8e;
-  --grade-cold: #1b735b;
+  --series-business: #009b95;
+  --series-after: #7577e3;
+  --grade-hot: #9be3dc;
+  --grade-warm: #3db5ae;
+  --grade-cold: #1b6f6d;
   color-scheme: dark;
 }
 
@@ -76,10 +82,12 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-rule: var(--rule);
-  --color-eucalyptus: var(--eucalyptus);
-  --color-on-eucalyptus: var(--on-eucalyptus);
-  --color-gumleaf: var(--gumleaf);
-  --color-dusk: var(--dusk);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-night: var(--night);
   --color-signal: var(--signal);
   --color-signal-wash: var(--signal-wash);
   --color-danger: var(--danger);
@@ -88,7 +96,9 @@
   --color-grade-hot: var(--grade-hot);
   --color-grade-warm: var(--grade-warm);
   --color-grade-cold: var(--grade-cold);
-  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  /* Figtree for reading and UI; Bricolage Grotesque for headings and figures (MASTER.md "Type") */
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 
   /* 1.25 scale from 16px (MASTER.md) */
   --text-xs: 0.8125rem;
@@ -108,9 +118,15 @@ body {
   font-family: var(--font-sans);
   line-height: 1.5;
 }
+/* Headings and big figures in Bricolage Grotesque; its optical-size axis tightens it at display sizes. */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
 
 :focus-visible {
-  outline: 2px solid var(--eucalyptus);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -121,7 +137,7 @@ body {
 
 /* Search highlights arrive as plain text between U+0002 and U+0003 and are rendered as <mark>. */
 mark {
-  background: var(--gumleaf);
+  background: var(--brand-soft);
   color: inherit;
   border-radius: 2px;
   padding: 0 1px;

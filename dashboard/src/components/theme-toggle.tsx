@@ -21,7 +21,7 @@ export function ThemeToggle({ initial }: { initial: Theme }) {
     }
   }
   return (
-    <button type="button" onClick={cycle} className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-3 text-ink-muted hover:bg-gumleaf hover:text-ink">
+    <button type="button" onClick={cycle} className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-3 text-ink-muted hover:bg-brand-soft hover:text-ink">
       <Icon size={18} aria-hidden="true" />
       <span>{LABEL[theme]}</span>
     </button>

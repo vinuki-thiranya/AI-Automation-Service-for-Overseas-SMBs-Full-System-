@@ -25,7 +25,7 @@ export function Header({ locale }: { locale: Locale }) {
             </summary>
             <ul className="absolute top-12 left-0 w-56 rounded-md border border-rule bg-surface p-1 shadow-sm">
               {VERTICALS.map((v) => (
-                <li key={v.slug}><Link href={p(`/for/${v.slug}`)} className="block rounded px-3 py-2.5 hover:bg-gumleaf">{v.name}</Link></li>
+                <li key={v.slug}><Link href={p(`/for/${v.slug}`)} className="block rounded px-3 py-2.5 hover:bg-brand-soft">{v.name}</Link></li>
               ))}
             </ul>
           </details>
@@ -34,7 +34,7 @@ export function Header({ locale }: { locale: Locale }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href={p("/contact")} className="hidden h-11 items-center rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus sm:flex">Book a 20-minute call</Link>
+          <Link href={p("/contact")} className="hidden h-11 items-center rounded-md bg-brand px-4 font-semibold text-on-brand sm:flex">Book a 20-minute call</Link>
           <details className="group lg:hidden">
             <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-md [&::-webkit-details-marker]:hidden" aria-label="Menu">
               <Menu size={22} aria-hidden="true" />
@@ -47,7 +47,7 @@ export function Header({ locale }: { locale: Locale }) {
               <ul className="mt-2 border-t border-rule pt-2">
                 {links.map((l) => <li key={l.href}><Link href={l.href} className="block py-3 font-semibold">{l.label}</Link></li>)}
               </ul>
-              <Link href={p("/contact")} className="mt-4 flex h-12 items-center justify-center rounded-md bg-eucalyptus font-semibold text-on-eucalyptus">Book a 20-minute call</Link>
+              <Link href={p("/contact")} className="mt-4 flex h-12 items-center justify-center rounded-md bg-brand font-semibold text-on-brand">Book a 20-minute call</Link>
             </nav>
           </details>
         </div>

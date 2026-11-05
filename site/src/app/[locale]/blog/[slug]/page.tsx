@@ -41,7 +41,7 @@ export default async function Post({ params }: Props) {
         publisher: { "@type": "Organization", name: "Nuvadesk", logo: { "@type": "ImageObject", url: `${siteUrl()}/icon.svg` } },
         mainEntityOfPage: `${siteUrl()}/blog/${post.slug}`,
       }} />
-      <p className="font-semibold text-eucalyptus"><Link href="/blog" className="underline-offset-4 hover:underline">Blog</Link></p>
+      <p className="font-semibold text-brand"><Link href="/blog" className="underline-offset-4 hover:underline">Blog</Link></p>
       <h1 className="display mt-3 text-3xl sm:text-4xl">{post.title}</h1>
       <p className="mt-3 text-ink-muted">
         <time dateTime={post.date}>{new Date(`${post.date}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}</time>

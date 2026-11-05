@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 export function Faq({ items, heading = "Questions clinics ask" }: { items: { q: string; a: string }[]; heading?: string }) {
   return (
     <section aria-labelledby="faq" className="mx-auto max-w-3xl px-5 py-16 sm:py-20">
-      <h2 id="faq" className="text-2xl font-bold tracking-[-0.01em]">{heading}</h2>
+      <h2 id="faq" className="font-display text-2xl font-bold tracking-[-0.01em]">{heading}</h2>
       <div className="mt-6 divide-y divide-rule border-y border-rule">
         {items.map((f) => (
           <details key={f.q} className="group py-1">

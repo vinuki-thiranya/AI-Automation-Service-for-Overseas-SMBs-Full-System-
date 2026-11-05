@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Atkinson_Hyperlegible_Next } from "next/font/google";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Footer, contactEmail } from "@/components/footer";
@@ -8,9 +8,9 @@ import { JsonLd } from "@/components/json-ld";
 import { LOCALE_INFO, LOCALES, isLocale, siteUrl } from "@/content/locales";
 import "../globals.css";
 
-const atkinson = Atkinson_Hyperlegible_Next({
-  subsets: ["latin"], variable: "--font-atkinson", display: "swap", adjustFontFallback: false, fallback: ["system-ui", "sans-serif"],
-});
+// Figtree (body, UI) and Bricolage Grotesque (headings, figures, display), self-hosted at build.
+const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap", fallback: ["system-ui", "sans-serif"] });
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-bricolage", display: "swap", axes: ["opsz"], fallback: ["system-ui", "sans-serif"] });
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   openGraph: { siteName: "Nuvadesk", type: "website" },
 };
 
-export const viewport: Viewport = { themeColor: "#f6f7f4" };
+export const viewport: Viewport = { themeColor: "#fbfbf8" };
 
 export default async function LocaleLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <html lang={LOCALE_INFO[locale].htmlLang} className={atkinson.variable}>
+    <html lang={LOCALE_INFO[locale].htmlLang} className={`${figtree.variable} ${bricolage.variable}`}>
       <body className="min-h-dvh bg-paper text-ink antialiased">
         <JsonLd data={{
           "@context": "https://schema.org",

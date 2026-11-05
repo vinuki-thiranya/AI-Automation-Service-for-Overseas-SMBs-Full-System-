@@ -24,17 +24,17 @@ export default async function Contact({ params }: Props) {
         <h1 className="display text-4xl sm:text-5xl">Book a 20-minute call</h1>
         <p className="mt-5 text-xl text-ink-muted">We&apos;ll look at how enquiries reach your clinic today, where they&apos;re lost, and tell you honestly whether this is worth it.</p>
         <ul className="mt-8 space-y-3 text-lg">
-          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-eucalyptus" />No slides, no obligation.</li>
-          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-eucalyptus" />If it&apos;s a fit, you get a one-page scope and a fixed price.</li>
-          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-eucalyptus" />Prefer email? Write to <a href={`mailto:${email}`} className="font-semibold text-eucalyptus underline underline-offset-4">{email}</a>.</li>
+          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />No slides, no obligation.</li>
+          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />If it&apos;s a fit, you get a one-page scope and a fixed price.</li>
+          <li className="flex gap-3"><span aria-hidden="true" className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />Prefer email? Write to <a href={`mailto:${email}`} className="font-semibold text-brand underline underline-offset-4">{email}</a>.</li>
         </ul>
       </div>
       <div>
         {cal ? <CalEmbed link={cal} /> : (
           <div className="rounded-xl border border-rule bg-surface p-8">
-            <h2 className="text-2xl font-bold">Email us to pick a time</h2>
+            <h2 className="font-display text-2xl font-bold">Email us to pick a time</h2>
             <p className="mt-3 text-ink-muted">Tell us your clinic&apos;s name and the best times for you, and we&apos;ll reply with a time that suits.</p>
-            <a href={`mailto:${email}?subject=${encodeURIComponent("20-minute call")}`} className="mt-6 inline-flex h-12 items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">
+            <a href={`mailto:${email}?subject=${encodeURIComponent("20-minute call")}`} className="mt-6 inline-flex h-12 items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">
               Email {email}
             </a>
           </div>

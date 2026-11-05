@@ -42,7 +42,7 @@ export default async function About({ params }: Props) {
         </div>
       </section>
       <section className="mx-auto max-w-4xl px-5 py-14">
-        <Link href={localePath(locale, "/contact")} className="inline-flex h-12 items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">
+        <Link href={localePath(locale, "/contact")} className="inline-flex h-12 items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">
           Book a 20-minute call
         </Link>
       </section>

@@ -24,7 +24,7 @@ export function LoginForm({ next }: { next: string }) {
           id="email" name="email" type="email" autoComplete="email" required inputMode="email"
           aria-describedby={state.status === "error" ? "email-error" : "email-help"}
           aria-invalid={state.status === "error"}
-          className="mt-1.5 block h-12 w-full rounded-md border border-rule bg-surface px-3 text-base text-ink placeholder:text-ink-muted focus:border-eucalyptus"
+          className="mt-1.5 block h-12 w-full rounded-md border border-rule bg-surface px-3 text-base text-ink placeholder:text-ink-muted focus:border-brand"
           placeholder="jess@yourclinic.com.au"
         />
         {state.status === "error"
@@ -33,7 +33,7 @@ export function LoginForm({ next }: { next: string }) {
       </div>
       <button
         type="submit" disabled={pending}
-        className="h-12 w-full cursor-pointer rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus transition-opacity duration-150 disabled:cursor-wait disabled:opacity-70"
+        className="h-12 w-full cursor-pointer rounded-md bg-brand px-4 font-semibold text-on-brand transition-opacity duration-150 disabled:cursor-wait disabled:opacity-70"
       >
         {pending ? "Sending the link…" : "Email me a sign-in link"}
       </button>

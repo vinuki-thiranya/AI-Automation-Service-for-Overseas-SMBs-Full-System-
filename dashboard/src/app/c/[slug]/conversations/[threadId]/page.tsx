@@ -38,7 +38,7 @@ export default async function Thread({ params }: { params: Promise<{ slug: strin
         <ArrowLeft size={18} aria-hidden="true" /> All conversations
       </Link>
       <header className="mt-2 border-b border-rule pb-4">
-        <h1 className="text-2xl font-bold tracking-[-0.01em]">{who}</h1>
+        <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">{who}</h1>
         <p className="mt-1 text-ink-muted">
           {CHANNEL_LABEL[thread.channel] ?? thread.channel}
           {thread.contact?.phone && thread.contact.name ? `, ${thread.contact.phone}` : ""}. Started {formatDate(thread.created_at, tz, "dayTime")}.
@@ -47,7 +47,7 @@ export default async function Thread({ params }: { params: Promise<{ slug: strin
           <ul className="mt-3 space-y-1">
             {bookings.map((b) => (
               <li key={b.id} className="flex items-center gap-2 text-sm">
-                <CalendarCheck size={16} className="text-eucalyptus" aria-hidden="true" />
+                <CalendarCheck size={16} className="text-brand" aria-hidden="true" />
                 Booked {b.service_id?.replaceAll("-", " ") ?? "appointment"} for {formatDate(b.starts_at, tz, "dayTime")}{b.practitioner ? ` with ${b.practitioner}` : ""}
                 <span className="text-ink-muted">({b.status === "booked" ? "upcoming" : b.status.replace("_", "-")})</span>
               </li>
@@ -81,7 +81,7 @@ export default async function Thread({ params }: { params: Promise<{ slug: strin
             const missedCall = m.metadata?.missed_call !== undefined;
             return (
               <li key={m.id} id={`m-${m.id}`} className={`flex scroll-mt-24 ${mine ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-lg px-4 py-2.5 sm:max-w-[75%] ${mine ? "bg-gumleaf" : "border border-rule bg-surface"} target:ring-2 target:ring-eucalyptus`}>
+                <div className={`max-w-[85%] rounded-lg px-4 py-2.5 sm:max-w-[75%] ${mine ? "bg-brand-soft" : "border border-rule bg-surface"} target:ring-2 target:ring-brand`}>
                   <p className="mb-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
                     {m.author === "staff" && <UserRound size={13} aria-hidden="true" />}
                     <span className="font-semibold">

@@ -1,32 +1,36 @@
 @import "tailwindcss";
 
-/* Tokens from design-system/nuvadesk/MASTER.md. The site is a day page with "after hours" bands. */
+/* Tokens from design-system/nuvadesk/MASTER.md ("Bright & friendly"). The site is a day page with
+   "after hours" night bands. */
 :root {
-  --paper: #f6f7f4;
+  --paper: #fbfbf8;
   --surface: #ffffff;
-  --ink: #18231f;
-  --ink-muted: #55635d;
-  --rule: #dce3de;
-  --eucalyptus: #2f6b5a;
-  --on-eucalyptus: #ffffff;
-  --gumleaf: #e2eee8;
-  --dusk: #33407a;
-  --signal: #9a5b00;
-  --signal-wash: #fbf1e1;
+  --ink: #14252b;
+  --ink-muted: #4f6168;
+  --rule: #e1e7e6;
+  --brand: #0b5d6b;
+  --on-brand: #ffffff;
+  --brand-soft: #d8f1e8;
+  --highlight: #f2b33d;
+  --on-highlight: #2a1e00;
+  --night: #10243a;
+  --signal: #8a4b00;
+  --signal-wash: #fdf0d5;
   color-scheme: light;
 }
 .after-hours {
-  --paper: #131b2e;
-  --surface: #1a2440;
-  --ink: #e9eef5;
-  --ink-muted: #a9b4c6;
-  --rule: #2b3757;
-  --eucalyptus: #7fc4ae;
-  --on-eucalyptus: #0f1a17;
-  --gumleaf: #20393a;
-  --dusk: #aeb8f2;
-  --signal: #f2b661;
-  --signal-wash: #33301f;
+  --paper: #10243a;
+  --surface: #17304a;
+  --ink: #eaf1f2;
+  --ink-muted: #a9bac3;
+  --rule: #284462;
+  --brand: #5cc3c9;
+  --on-brand: #062a30;
+  --brand-soft: #173f48;
+  --highlight: #f5c25b;
+  --on-highlight: #2a1e00;
+  --signal: #f5c25b;
+  --signal-wash: #2e2716;
   color-scheme: dark;
   background: var(--paper);
   color: var(--ink);
@@ -38,13 +42,17 @@
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-rule: var(--rule);
-  --color-eucalyptus: var(--eucalyptus);
-  --color-on-eucalyptus: var(--on-eucalyptus);
-  --color-gumleaf: var(--gumleaf);
-  --color-dusk: var(--dusk);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-night: var(--night);
   --color-signal: var(--signal);
   --color-signal-wash: var(--signal-wash);
-  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  /* Figtree for reading and UI; Bricolage Grotesque for headings and display (MASTER.md "Type") */
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 
   /* 1.25 scale from 16px, plus display steps for the site */
   --text-lg: 1.25rem;
@@ -65,14 +73,21 @@ body {
   font-family: var(--font-sans);
   line-height: 1.5;
 }
+/* Headings in Bricolage Grotesque; its optical-size axis tightens it at display sizes. */
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
 :focus-visible {
-  outline: 2px solid var(--eucalyptus);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
   border-radius: 4px;
 }
 .display {
+  font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 1.08;
   text-wrap: balance;
 }
@@ -88,9 +103,9 @@ body {
 .prose-post ul { list-style: disc; padding-left: 1.25rem; }
 .prose-post ol { list-style: decimal; padding-left: 1.25rem; }
 .prose-post li { margin-bottom: 0.4rem; }
-.prose-post a { color: var(--eucalyptus); text-decoration: underline; text-underline-offset: 3px; }
+.prose-post a { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
 .prose-post strong { font-weight: 700; }
-.prose-post blockquote { border-left: 3px solid var(--eucalyptus); padding-left: 1rem; color: var(--ink-muted); margin: 1.5rem 0; }
+.prose-post blockquote { border-left: 3px solid var(--brand); padding-left: 1rem; color: var(--ink-muted); margin: 1.5rem 0; }
 
 /* Hero: the one orchestrated moment. Messages arrive in turn, then the calendar slot fills. */
 @keyframes arrive {
@@ -99,7 +114,7 @@ body {
 }
 @keyframes fill-slot {
   from { background-color: transparent; color: var(--ink-muted); }
-  to { background-color: var(--eucalyptus); color: var(--on-eucalyptus); }
+  to { background-color: var(--highlight); color: var(--on-highlight); border-color: var(--highlight); }
 }
 .arrive { opacity: 0; animation: arrive 360ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
 .fill-slot { animation: fill-slot 420ms ease-out forwards; }

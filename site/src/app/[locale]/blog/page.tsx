@@ -26,7 +26,7 @@ export default function Blog() {
         {POSTS.map((p) => (
           <li key={p.slug}>
             <Link href={`/blog/${p.slug}`} className="group block py-6">
-              <h2 className="text-xl font-bold group-hover:text-eucalyptus">{p.title}</h2>
+              <h2 className="font-display text-xl font-bold group-hover:text-brand">{p.title}</h2>
               <p className="mt-2 text-ink-muted">{p.description}</p>
               <p className="mt-2 text-sm text-ink-muted"><time dateTime={p.date}>{fmt(p.date)}</time></p>
             </Link>

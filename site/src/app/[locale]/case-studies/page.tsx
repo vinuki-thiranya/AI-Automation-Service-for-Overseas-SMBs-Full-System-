@@ -28,7 +28,7 @@ export default async function CaseStudies({ params }: Props) {
   return (
     <>
       <section className="mx-auto max-w-4xl px-5 pt-12 pb-10 sm:pt-16">
-        <p className="font-semibold text-eucalyptus">Demo build</p>
+        <p className="font-semibold text-brand">Demo build</p>
         <h1 className="display mt-3 text-4xl sm:text-5xl">Harbourside Dental: how a clinic&apos;s front desk is set up</h1>
         <p className="mt-5 text-xl text-ink-muted">
           Harbourside Dental is a fictional two-dentist clinic in Sydney that we run the full system on. This page shows exactly what we build
@@ -38,16 +38,16 @@ export default async function CaseStudies({ params }: Props) {
 
       <section className="border-y border-rule bg-surface">
         <div className="mx-auto max-w-4xl px-5 py-14">
-          <h2 className="text-2xl font-bold">The brief</h2>
+          <h2 className="font-display text-2xl font-bold">The brief</h2>
           <p className="mt-3 text-lg text-ink-muted">
             Calls ring out while both dentists and the practice manager are with patients. Messages that arrive after 6pm wait until morning.
             The same five questions (parking, prices, health funds, Saturday hours, Afterpay) take up the front desk&apos;s day.
           </p>
-          <h2 className="mt-10 text-2xl font-bold">The 14-day build</h2>
+          <h2 className="font-display mt-10 text-2xl font-bold">The 14-day build</h2>
           <ol className="mt-5 space-y-6">
             {BUILD.map((b) => (
               <li key={b.day} className="grid gap-1 sm:grid-cols-[8rem_1fr] sm:gap-6">
-                <p className="tabular font-bold text-eucalyptus">{b.day}</p>
+                <p className="tabular font-bold text-brand">{b.day}</p>
                 <div>
                   <h3 className="text-lg font-bold">{b.what}</h3>
                   <p className="mt-1 text-ink-muted">{b.detail}</p>
@@ -59,12 +59,12 @@ export default async function CaseStudies({ params }: Props) {
       </section>
 
       <section className="mx-auto max-w-4xl px-5 py-14">
-        <h2 className="text-2xl font-bold">What the clinic sees each week</h2>
+        <h2 className="font-display text-2xl font-bold">What the clinic sees each week</h2>
         <p className="mt-3 text-lg text-ink-muted">
           A dashboard and a Monday-morning email with enquiries handled, bookings made, leads by score, reply times, conversations handed to staff, and
           an estimate of revenue from bookings. Every conversation is searchable for 12 months.
         </p>
-        <Link href={p("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">
+        <Link href={p("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">
           Book a 20-minute call
         </Link>
       </section>

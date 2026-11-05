@@ -27,7 +27,7 @@ export default async function Help({ params }: { params: Promise<{ slug: string 
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-[-0.01em]">Help</h1>
+      <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Help</h1>
       <p className="mt-1 text-ink-muted">How your front desk works, and who to ask when something looks wrong.</p>
 
       <section className="mt-8" aria-labelledby="walkthrough">
@@ -37,7 +37,7 @@ export default async function Help({ params }: { params: Promise<{ slug: string 
             <iframe src={embed} title={video!.title} className="h-full w-full" allow="fullscreen; picture-in-picture" loading="lazy" />
           </div>
         ) : video?.url ? (
-          <a href={video.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus">
+          <a href={video.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex h-11 items-center gap-2 rounded-md bg-brand px-4 font-semibold text-on-brand">
             <PlayCircle size={18} aria-hidden="true" /> Watch the walkthrough
           </a>
         ) : (
@@ -54,10 +54,10 @@ export default async function Help({ params }: { params: Promise<{ slug: string 
             const external = r.url?.startsWith("https://");
             return (
               <li key={r.id} className="rounded-lg border border-rule bg-surface p-4">
-                <p className="flex items-center gap-2 font-bold"><Icon size={18} className="text-eucalyptus" aria-hidden="true" />{r.title}</p>
+                <p className="flex items-center gap-2 font-bold"><Icon size={18} className="text-brand" aria-hidden="true" />{r.title}</p>
                 {r.note && <p className="mt-1 text-ink-muted">{r.note}</p>}
                 {r.url && (
-                  <a href={r.url} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="mt-3 inline-flex h-11 items-center font-semibold text-eucalyptus underline-offset-4 hover:underline">
+                  <a href={r.url} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="mt-3 inline-flex h-11 items-center font-semibold text-brand underline-offset-4 hover:underline">
                     {r.url.startsWith("mailto:") ? `Email ${r.url.slice(7)}` : r.url.startsWith("tel:") ? `Call ${r.url.slice(4)}` : `Open ${r.title.toLowerCase()}`}
                   </a>
                 )}

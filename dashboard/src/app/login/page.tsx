@@ -21,7 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <section className="flex flex-col justify-center px-5 py-12 sm:px-12">
         <div className="mx-auto w-full max-w-sm">
           <Wordmark className="mb-10 lg:hidden" />
-          <h1 className="text-2xl font-bold tracking-[-0.01em]">Sign in</h1>
+          <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Sign in</h1>
           <p className="mt-2 mb-8 text-ink-muted">Use the email address your clinic is set up with.</p>
           {params.error === "link" && (
             <p role="alert" className="mb-6 rounded-md bg-signal-wash p-3 text-sm text-ink">

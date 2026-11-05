@@ -25,12 +25,12 @@ export default async function Agency() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="text-2xl font-bold tracking-[-0.01em]">All clients</h1>
+      <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">All clients</h1>
       <p className="mt-1 text-ink-muted">
-        Last 30 days. {statusUrl ? <a href={statusUrl} className="font-semibold text-eucalyptus underline-offset-4 hover:underline">Uptime status</a> : "Uptime is tracked in Uptime Kuma (status page once deployed)."}
+        Last 30 days. {statusUrl ? <a href={statusUrl} className="font-semibold text-brand underline-offset-4 hover:underline">Uptime status</a> : "Uptime is tracked in Uptime Kuma (status page once deployed)."}
       </p>
 
-      <p className="mt-8 text-xl font-bold tracking-[-0.01em]">
+      <p className="font-display mt-8 text-xl font-bold tracking-[-0.01em]">
         {rows.length} {rows.length === 1 ? "client" : "clients"}, {formatMoney(totalSpend, "USD", { cents: true })} in API spend.{" "}
         <span className={needs.length ? "text-signal" : "text-ink-muted"}>
           {needs.length ? `${needs.length} need${needs.length === 1 ? "s" : ""} a look.` : "Nothing needs attention."}
@@ -57,7 +57,7 @@ export default async function Agency() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.client_id} className="border-b border-rule last:border-0">
-                  <td className="py-3 pr-4"><Link href={`/c/${r.slug}`} className="font-semibold text-eucalyptus underline-offset-4 hover:underline">{r.name}</Link></td>
+                  <td className="py-3 pr-4"><Link href={`/c/${r.slug}`} className="font-semibold text-brand underline-offset-4 hover:underline">{r.name}</Link></td>
                   <td className="py-3 pr-4 text-sm">{STATUS[r.status] ?? r.status}</td>
                   <td className="py-3 pr-4 text-right">{formatCount(r.messages)}</td>
                   <td className="py-3 pr-4 text-right">{formatCount(r.inbound)}</td>

@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: "Approvals" };
 
 const HELPDESK: Record<string, string> = { freshdesk: "Freshdesk", zendesk: "Zendesk", gorgias: "Gorgias", other: "your help desk" };
 const OUTCOME: Record<string, { label: string; className: string }> = {
-  approved: { label: "Approved", className: "text-eucalyptus" },
-  sent: { label: "Sent", className: "text-eucalyptus" },
+  approved: { label: "Approved", className: "text-brand" },
+  sent: { label: "Sent", className: "text-brand" },
   rejected: { label: "Rejected", className: "text-ink-muted" },
   failed: { label: "Couldn't send", className: "text-danger" },
 };
@@ -24,7 +24,7 @@ export default async function Approvals({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-[-0.01em]">Approvals</h1>
+      <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Approvals</h1>
       <p className="mt-1 max-w-2xl text-ink-muted">
         Replies drafted for support emails in {desk}. Nothing is sent until someone approves it. Oldest first.
       </p>

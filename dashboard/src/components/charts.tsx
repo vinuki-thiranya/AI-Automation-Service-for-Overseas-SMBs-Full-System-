@@ -58,7 +58,7 @@ export function EnquiriesChart({ data }: { data: { day: string; business: number
             {grid}
             <XAxis dataKey="day" tickFormatter={dayTick} minTickGap={24} {...axis} />
             <YAxis allowDecimals={false} width={40} {...axis} />
-            <Tooltip content={content} cursor={{ fill: "var(--gumleaf)", opacity: 0.5 }} />
+            <Tooltip content={content} cursor={{ fill: "var(--brand-soft)", opacity: 0.5 }} />
             <Bar dataKey="business" stackId="e" fill="var(--series-business)" stroke="var(--surface)" strokeWidth={1} isAnimationActive={false} />
             <Bar dataKey="after" stackId="e" fill="var(--series-after)" stroke="var(--surface)" strokeWidth={1} radius={[4, 4, 0, 0]} isAnimationActive={false} />
           </BarChart>
@@ -110,7 +110,7 @@ export function BookingsChart({ data }: { data: { day: string; bookings: number 
           {grid}
           <XAxis dataKey="day" tickFormatter={dayTick} minTickGap={32} {...axis} />
           <YAxis allowDecimals={false} width={40} {...axis} />
-          <Tooltip content={content} cursor={{ fill: "var(--gumleaf)", opacity: 0.5 }} />
+          <Tooltip content={content} cursor={{ fill: "var(--brand-soft)", opacity: 0.5 }} />
           <Bar dataKey="bookings" fill="var(--series-business)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
@@ -137,7 +137,7 @@ export function LeadsChart({ data }: { data: { week: string; hot: number; warm: 
             {grid}
             <XAxis dataKey="week" tickFormatter={dayTick} {...axis} />
             <YAxis allowDecimals={false} width={40} {...axis} />
-            <Tooltip content={content} cursor={{ fill: "var(--gumleaf)", opacity: 0.5 }} />
+            <Tooltip content={content} cursor={{ fill: "var(--brand-soft)", opacity: 0.5 }} />
             <Bar dataKey="hot" stackId="l" fill="var(--grade-hot)" stroke="var(--surface)" strokeWidth={1} isAnimationActive={false} />
             <Bar dataKey="warm" stackId="l" fill="var(--grade-warm)" stroke="var(--surface)" strokeWidth={1} isAnimationActive={false} />
             <Bar dataKey="cold" stackId="l" fill="var(--grade-cold)" stroke="var(--surface)" strokeWidth={1} radius={[4, 4, 0, 0]} isAnimationActive={false} />

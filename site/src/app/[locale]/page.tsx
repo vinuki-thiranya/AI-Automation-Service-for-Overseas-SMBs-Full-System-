@@ -70,9 +70,9 @@ export default async function Home({ params }: Props) {
         <h2 id="how" className="display text-3xl">How it works</h2>
         <ol className="mt-10 grid gap-10 lg:grid-cols-3">
           {STEPS.map((s, i) => (
-            <li key={s.title} className="border-t-2 border-eucalyptus pt-5">
-              <p className="tabular text-sm font-bold text-eucalyptus">Step {i + 1}</p>
-              <h3 className="mt-1 text-xl font-bold">{s.title}</h3>
+            <li key={s.title} className="border-t-2 border-brand pt-5">
+              <p className="tabular text-sm font-bold text-brand">Step {i + 1}</p>
+              <h3 className="font-display mt-1 text-xl font-bold">{s.title}</h3>
               <p className="mt-2 text-ink-muted">{s.body}</p>
             </li>
           ))}
@@ -83,34 +83,34 @@ export default async function Home({ params }: Props) {
         <div className="mx-auto max-w-6xl px-5 py-16 sm:py-20">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 id="pricing" className="display text-3xl">Fixed prices, in US dollars</h2>
-            <Link href={p("/packages")} className="font-semibold text-eucalyptus underline-offset-4 hover:underline">All packages and care plans</Link>
+            <Link href={p("/packages")} className="font-semibold text-brand underline-offset-4 hover:underline">All packages and care plans</Link>
           </div>
           <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-            <div className="rounded-xl border-2 border-eucalyptus p-6">
-              <p className="font-semibold text-eucalyptus">Most clinics start here</p>
-              <h3 className="mt-1 text-2xl font-bold">{receptionist.name}</h3>
-              <p className="tabular mt-2 text-3xl font-bold">{usd(receptionist.price)} <span className="text-base font-normal text-ink-muted">{receptionist.priceNote}</span></p>
+            <div className="rounded-xl border-2 border-brand p-6">
+              <p className="font-semibold text-brand">Most clinics start here</p>
+              <h3 className="font-display mt-1 text-2xl font-bold">{receptionist.name}</h3>
+              <p className="font-display tabular mt-2 text-3xl font-bold">{usd(receptionist.price)} <span className="text-base font-normal text-ink-muted">{receptionist.priceNote}</span></p>
               <p className="mt-3 text-ink-muted">{receptionist.summary}</p>
               <ul className="mt-5 space-y-2">
-                {receptionist.includes.slice(0, 4).map((x) => <li key={x} className="flex gap-2"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-eucalyptus" />{x}</li>)}
+                {receptionist.includes.slice(0, 4).map((x) => <li key={x} className="flex gap-2"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />{x}</li>)}
               </ul>
-              <Link href={p(`/packages/${receptionist.slug}`)} className="mt-6 inline-flex h-11 items-center rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus">See what&apos;s included</Link>
+              <Link href={p(`/packages/${receptionist.slug}`)} className="mt-6 inline-flex h-11 items-center rounded-md bg-brand px-4 font-semibold text-on-brand">See what&apos;s included</Link>
             </div>
             <div className="flex flex-col gap-4">
               <div className="rounded-xl border border-rule p-6">
                 <h3 className="text-lg font-bold">{BUNDLE.name}</h3>
-                <p className="tabular mt-1 text-2xl font-bold">{usd(BUNDLE.price)}</p>
+                <p className="font-display tabular mt-1 text-2xl font-bold">{usd(BUNDLE.price)}</p>
                 <p className="mt-2 text-ink-muted">{BUNDLE.note}</p>
               </div>
               <div className="rounded-xl border border-rule p-6">
                 <h3 className="text-lg font-bold">Care plan</h3>
-                <p className="tabular mt-1 text-2xl font-bold">from {usd(300)} <span className="text-base font-normal text-ink-muted">a month</span></p>
+                <p className="font-display tabular mt-1 text-2xl font-bold">from {usd(300)} <span className="text-base font-normal text-ink-muted">a month</span></p>
                 <p className="mt-2 text-ink-muted">Hosting, monitoring and changes. Minimum 3 months, then month to month.</p>
               </div>
             </div>
           </div>
           <ul className="mt-10 grid gap-x-8 gap-y-3 sm:grid-cols-2">
-            {ALWAYS_INCLUDED.map((x) => <li key={x} className="flex gap-2 text-ink-muted"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-eucalyptus" />{x}</li>)}
+            {ALWAYS_INCLUDED.map((x) => <li key={x} className="flex gap-2 text-ink-muted"><span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />{x}</li>)}
           </ul>
         </div>
       </section>
@@ -123,7 +123,7 @@ export default async function Home({ params }: Props) {
           {VERTICALS.map((v) => (
             <li key={v.slug} className="border-t border-rule">
               <Link href={p(`/for/${v.slug}`)} className="group block py-5">
-                <span className="text-lg font-bold group-hover:text-eucalyptus">{v.name}</span>
+                <span className="text-lg font-bold group-hover:text-brand">{v.name}</span>
                 <span className="mt-1 block text-ink-muted">{v.headline}</span>
               </Link>
             </li>
@@ -138,7 +138,7 @@ export default async function Home({ params }: Props) {
         <div className="mx-auto max-w-6xl px-5 py-16 text-center sm:py-20">
           <h2 className="display mx-auto max-w-2xl text-3xl sm:text-4xl">See what your clinic misses after hours.</h2>
           <p className="mx-auto mt-4 max-w-xl text-lg text-ink-muted">A 20-minute call. We&apos;ll look at how enquiries reach you today and tell you honestly whether this is worth it for your {info.clinicWord}.</p>
-          <Link href={p("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-eucalyptus px-6 text-lg font-semibold text-on-eucalyptus">Book a 20-minute call</Link>
+          <Link href={p("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-brand px-6 text-lg font-semibold text-on-brand">Book a 20-minute call</Link>
         </div>
       </section>
     </>

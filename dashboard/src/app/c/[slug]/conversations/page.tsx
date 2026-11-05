@@ -8,7 +8,7 @@ import { CHANNEL_LABEL, formatDate, splitHighlights } from "@/lib/format";
 export const metadata: Metadata = { title: "Conversations" };
 
 const STATUS: Record<string, { label: string; className: string }> = {
-  ai: { label: "Assistant", className: "bg-gumleaf text-ink" },
+  ai: { label: "Assistant", className: "bg-brand-soft text-ink" },
   human: { label: "Staff took over", className: "bg-signal-wash text-signal" },
   closed: { label: "Closed", className: "text-ink-muted" },
 };
@@ -41,7 +41,7 @@ export default async function Conversations({ params, searchParams }: {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-[-0.01em]">Conversations</h1>
+      <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Conversations</h1>
       <p className="mt-1 text-ink-muted">Every message with your patients, searchable for 12 months.</p>
 
       <form action={base} className="mt-6 flex flex-wrap items-end gap-3" role="search">
@@ -71,7 +71,7 @@ export default async function Conversations({ params, searchParams }: {
             </select>
           </div>
         )}
-        <button className="h-11 cursor-pointer rounded-md bg-eucalyptus px-4 font-semibold text-on-eucalyptus">{q ? "Search" : "Apply"}</button>
+        <button className="h-11 cursor-pointer rounded-md bg-brand px-4 font-semibold text-on-brand">{q ? "Search" : "Apply"}</button>
         {(q || channel || status) && <Link href={base} className="flex h-11 items-center px-2 font-semibold text-ink-muted hover:text-ink">Clear</Link>}
       </form>
 
@@ -87,7 +87,7 @@ export default async function Conversations({ params, searchParams }: {
             <ul className="mt-3 divide-y divide-rule border-y border-rule">
               {filtered!.map((h) => (
                 <li key={h.message_id}>
-                  <Link href={`${base}/${h.thread_id}#m-${h.message_id}`} className="block px-1 py-4 hover:bg-gumleaf/40 sm:px-3">
+                  <Link href={`${base}/${h.thread_id}#m-${h.message_id}`} className="block px-1 py-4 hover:bg-brand-soft/40 sm:px-3">
                     <p className="flex flex-wrap items-baseline gap-x-3 text-sm text-ink-muted">
                       <span className="font-semibold text-ink">{h.contact_name ?? "Unknown contact"}</span>
                       <span>{AUTHOR[h.author]} on {CHANNEL_LABEL[h.channel] ?? h.channel}</span>
@@ -113,7 +113,7 @@ export default async function Conversations({ params, searchParams }: {
         <ul className="mt-8 divide-y divide-rule border-y border-rule">
           {threads.map((t) => (
             <li key={t.id}>
-              <Link href={`${base}/${t.id}`} className="block px-1 py-4 hover:bg-gumleaf/40 sm:px-3">
+              <Link href={`${base}/${t.id}`} className="block px-1 py-4 hover:bg-brand-soft/40 sm:px-3">
                 <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-semibold">{t.contact?.name ?? t.contact?.phone ?? "Unknown contact"}</span>
                   <span className="text-sm text-ink-muted">{CHANNEL_LABEL[t.channel] ?? t.channel}</span>
@@ -136,7 +136,7 @@ export default async function Conversations({ params, searchParams }: {
 
       {nextBefore && (
         <div className="mt-6">
-          <Link href={keep({ before: nextBefore })} className="inline-flex h-11 items-center rounded-md border border-rule px-4 font-semibold hover:bg-gumleaf/40">Show older</Link>
+          <Link href={keep({ before: nextBefore })} className="inline-flex h-11 items-center rounded-md border border-rule px-4 font-semibold hover:bg-brand-soft/40">Show older</Link>
         </div>
       )}
     </div>

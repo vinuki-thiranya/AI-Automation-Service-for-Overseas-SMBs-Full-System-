@@ -104,7 +104,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
 
       {empty ? (
         <section className="mt-10 max-w-xl">
-          <p className="text-2xl font-bold tracking-[-0.01em]">No enquiries yet in this period.</p>
+          <p className="font-display text-2xl font-bold tracking-[-0.01em]">No enquiries yet in this period.</p>
           <p className="mt-3 text-ink-muted">
             When patients message {settings.assistantName} on WhatsApp, SMS or your website chat, the conversations, bookings and reply times appear here.
             Try a longer period, or send a test message to your clinic number.
@@ -112,7 +112,7 @@ export default async function Overview({ params, searchParams }: { params: Promi
         </section>
       ) : (
         <>
-          <p className="mt-8 max-w-3xl text-xl leading-snug font-bold tracking-[-0.01em] sm:text-2xl">
+          <p className="font-display mt-8 max-w-3xl text-xl leading-snug font-bold tracking-[-0.01em] sm:text-2xl">
             {settings.assistantName} handled {formatCount(enquiries)} {enquiries === 1 ? "enquiry" : "enquiries"} and booked {formatCount(bookings)} {bookings === 1 ? "appointment" : "appointments"}.
             {afterHours > 0 && <span className="text-ink-muted"> {afterShare}% of enquiries came in while the clinic was closed.</span>}
           </p>

@@ -39,10 +39,10 @@ export default async function VerticalPage({ params }: Props) {
   return (
     <>
       <section className="mx-auto max-w-6xl px-5 pt-12 pb-14 sm:pt-16">
-        <p className="font-semibold text-eucalyptus">{v.name}</p>
+        <p className="font-semibold text-brand">{v.name}</p>
         <h1 className="display mt-3 max-w-3xl text-4xl sm:text-5xl">{v.headline}</h1>
         <p className="mt-5 max-w-2xl text-xl text-ink-muted">{v.lede}</p>
-        <Link href={path("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-eucalyptus px-5 text-lg font-semibold text-on-eucalyptus">Book a 20-minute call</Link>
+        <Link href={path("/contact")} className="mt-8 inline-flex h-12 items-center rounded-md bg-brand px-5 text-lg font-semibold text-on-brand">Book a 20-minute call</Link>
       </section>
 
       <section className="border-y border-rule bg-surface" aria-labelledby="moments">
@@ -63,12 +63,12 @@ export default async function VerticalPage({ params }: Props) {
         <h2 id="fit" className="display text-3xl">Recommended for {v.name.toLowerCase()}</h2>
         <ul className="mt-8 grid gap-5 md:grid-cols-2">
           {packages.map((p, i) => (
-            <li key={p.slug} className={`rounded-xl p-6 ${i === 0 ? "border-2 border-eucalyptus" : "border border-rule"}`}>
+            <li key={p.slug} className={`rounded-xl p-6 ${i === 0 ? "border-2 border-brand" : "border border-rule"}`}>
               <p className="text-sm font-semibold text-ink-muted">{i === 0 ? "Start with" : "Add when you're ready"}</p>
-              <h3 className="mt-1 text-xl font-bold">{p.name}</h3>
-              <p className="tabular mt-1 text-2xl font-bold">{usd(p.price)}</p>
+              <h3 className="font-display mt-1 text-xl font-bold">{p.name}</h3>
+              <p className="font-display tabular mt-1 text-2xl font-bold">{usd(p.price)}</p>
               <p className="mt-2 text-ink-muted">{p.summary}</p>
-              <Link href={path(`/packages/${p.slug}`)} className="mt-4 inline-flex h-11 items-center font-semibold text-eucalyptus underline-offset-4 hover:underline">What&apos;s included</Link>
+              <Link href={path(`/packages/${p.slug}`)} className="mt-4 inline-flex h-11 items-center font-semibold text-brand underline-offset-4 hover:underline">What&apos;s included</Link>
             </li>
           ))}
         </ul>

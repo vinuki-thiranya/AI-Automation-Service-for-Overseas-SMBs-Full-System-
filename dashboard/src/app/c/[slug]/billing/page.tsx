@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Billing" };
 
 const KIND: Record<string, string> = { deposit: "Setup deposit", go_live: "Go-live balance", care_plan: "Care plan", usage: "Usage", extra_hours: "Extra hours" };
 const STATUS: Record<string, { label: string; className: string }> = {
-  paid: { label: "Paid", className: "text-eucalyptus" },
+  paid: { label: "Paid", className: "text-brand" },
   sent: { label: "Due", className: "text-signal" },
   draft: { label: "Draft (only the agency sees this)", className: "text-ink-muted" },
   void: { label: "Cancelled", className: "text-ink-muted line-through" },
@@ -26,7 +26,7 @@ export default async function Billing({ params }: { params: Promise<{ slug: stri
 
   return (
     <div className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold tracking-[-0.01em]">Billing</h1>
+      <h1 className="font-display text-2xl font-bold tracking-[-0.01em]">Billing</h1>
       <p className="mt-1 max-w-2xl text-ink-muted">
         Invoices for your setup, care plan and usage. Usage is passed through at cost plus 20%, and you can ask for the raw provider invoices any time.
       </p>
@@ -38,7 +38,7 @@ export default async function Billing({ params }: { params: Promise<{ slug: stri
         </div>
       ) : (
         <>
-          <p className="mt-8 text-xl font-bold tracking-[-0.01em]">
+          <p className="font-display mt-8 text-xl font-bold tracking-[-0.01em]">
             {due.length === 0 ? "Nothing to pay right now." : `${formatMoney(dueTotal, currency, { cents: true })} due on ${due.length} ${due.length === 1 ? "invoice" : "invoices"}.`}
           </p>
           <div className="mt-6 overflow-x-auto">
@@ -70,7 +70,7 @@ export default async function Billing({ params }: { params: Promise<{ slug: stri
                     </td>
                     <td className="py-3">
                       {inv.url && (
-                        <a href={inv.url} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm font-semibold text-eucalyptus hover:bg-gumleaf/60">
+                        <a href={inv.url} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm font-semibold text-brand hover:bg-brand-soft/60">
                           View<span className="sr-only"> invoice {inv.number} (opens {inv.provider ?? "provider"} in a new tab)</span>
                           <ExternalLink size={14} aria-hidden="true" />
                         </a>

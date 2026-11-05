@@ -11,7 +11,7 @@ export function RangePicker({ base, current }: { base: string; current: RangeKey
           key={r.key}
           href={`${base}?range=${r.key}`}
           aria-current={r.key === current ? "page" : undefined}
-          className={`flex h-11 items-center justify-center whitespace-nowrap rounded-md px-2 text-sm font-semibold sm:h-10 sm:px-3 ${r.key === current ? "bg-gumleaf text-ink" : "text-ink-muted hover:text-ink"}`}
+          className={`flex h-11 items-center justify-center whitespace-nowrap rounded-md px-2 text-sm font-semibold sm:h-10 sm:px-3 ${r.key === current ? "bg-brand-soft text-ink" : "text-ink-muted hover:text-ink"}`}
         >
           <span className="sm:hidden" aria-hidden="true">{r.short}</span>
           <span className="sr-only sm:not-sr-only">{r.label}</span>

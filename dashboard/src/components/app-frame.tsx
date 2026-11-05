@@ -18,7 +18,7 @@ export async function AppFrame({ current, nav, children }: { current: Membership
         <>
           <ThemeToggle initial={theme} />
           <form action="/auth/signout" method="post">
-            <button className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-3 text-ink-muted hover:bg-gumleaf hover:text-ink">
+            <button className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-md px-3 text-ink-muted hover:bg-brand-soft hover:text-ink">
               <LogOut size={18} aria-hidden="true" />
               <span>Sign out</span>
             </button>
