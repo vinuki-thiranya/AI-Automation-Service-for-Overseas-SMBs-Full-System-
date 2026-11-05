@@ -1,7 +1,7 @@
 // One page per vertical (spec Prompt 5: dental, physio, real estate, home services, law).
 // Pains and fit come from spec §2. No invented statistics: every claim is about what the system does.
-import type { Locale } from "./locales";
-import type { PackageSlug } from "./packages";
+import type { Locale } from "./locales.ts";
+import type { PackageSlug } from "./packages.ts";
 
 export type VerticalSlug = "dental" | "physio" | "real-estate" | "home-services" | "law";
 
